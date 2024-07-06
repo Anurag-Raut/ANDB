@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/andb.dir/main.cpp.o -o andb 
