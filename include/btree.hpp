@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <string>
 #include <fstream>
@@ -29,14 +30,14 @@ public:
 };
 
 
-class Database {
+class Btree {
     private:
-        std::ofstream file; 
-
+    BTreeNode *root;
     public:
-        BTreeNode* root = NULL;
         void insert(string key, string value) ;
         string search(string key) ;
         void printTree() ;
-        Database(string database_name);
+        Btree(string database_name);
+        BTreeNode* readPage(int offset);
+        
 };
