@@ -3,19 +3,22 @@
 #include <fstream>
 #include <string>
 #include<vector>
+#include "../include/table.hpp"
+
 using namespace std;
 
 
 
 class Database {
-   private:
-   fstream data_file;
-   fstream metadata_file;
+    vector<Table *> tables; 
    
 
    public:
+   fstream *data_file=new fstream();
+   fstream *metadata_file=new fstream();
     Database(string database_name);
-    void CreateTable(string table_name,vector<string> types,vector<string> names);
+    ~Database();
+    Table* CreateTable(string table_name,vector<string> types,vector<string> names);
 
 
 };

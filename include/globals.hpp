@@ -5,7 +5,7 @@
 #include <iostream>
 
 using namespace std;
-extern const unsigned int PAGE_SIZE = 4096;  
+extern const unsigned int PAGE_SIZE = 150;  
 extern const string BASE_DIRECTORY = "base/";
 
 extern const int HEADER_SIZE = sizeof(uint32_t) ; // Page ID 

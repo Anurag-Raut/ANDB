@@ -1,7 +1,7 @@
 #include <string>
-#include "storage/database.cpp"
 #include <cassert>
 #include <iostream>
+#include "storage/database.cpp"
 #include <thread>   // For std::this_thread::sleep_for
 #include <chrono>   // For std::chrono::seconds
 using namespace std;
@@ -83,7 +83,29 @@ using namespace std;
 void test() {
 
     Database* database = new Database("test");
-    database->CreateTable("test_table",{"int","string"},{"age","name"}) ;
+    Table * table=database->CreateTable("test_table",{"int","string"},{"age","name"}) ;
+    this_thread::sleep_for(chrono::milliseconds(1000));
+    table->Insert({"1","anurag"});
+        this_thread::sleep_for(chrono::milliseconds(1000));
+    
+        table->Insert({"2","jhf"});
+        table->Insert({"3","DFsdfsadf"});
+        table->Insert({"4","asfdsfd"});
+        table->Insert({"5","asfdsfd"});
+        table->Insert({"6","asdsfd"});
+        table->Insert({"7","asfd"});
+        table->Insert({"8","asfd"});
+        table->Insert({"9","asfd"});
+        table->Insert({"10","asfd"});
+        table->Insert({"11","asfd"});
+    table->Insert({"12","asfd"});
+    table->Insert({"13","asfd"});
+    // table->Insert({"14","asfd"});
+
+
+
+        table->Print();
+
     // testInsertAndSearch(store);
     // testDuplicateKeys(store);
     // testTreeSplitting(store);

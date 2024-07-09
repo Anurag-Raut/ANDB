@@ -6,38 +6,47 @@
 
 using namespace std;
 
-struct key_struct {
+struct Block {
     string key;
-    string value;
-    int size() const { return value.size(); }
+    uint64_t pageNumber;
+    uint16_t blockNumber;
+    
+    
+    int size() const { return sizeof(key)+sizeof(pageNumber)+sizeof(blockNumber); }
+};
+
+
+
+
+class Btree{
+
+
+    public:
+    fstream *data_file; 
+        uint64_t insert(string key, string value) ;
+        string search(string key) ;
+        void printTree(uint64_t rootPageNumber) ;
+        Btree(fstream* fp);
+        // BTreeNode* readPage(int pageNumber);
+        // void writePage(BTreeNode* node);
+        // void updateFlush(BTreeNode* node);
+        
+        
 };
 
 class BTreeNode {
 public:
-    vector<key_struct> nodes;
-    vector<BTreeNode*> children;
+    vector<Block> blocks;
+    vector<uint64_t> children;
+    uint64_t pageNumber;
     int size;
     bool leafNode;
 
     BTreeNode(bool isLeafNode) : size(0), leafNode(isLeafNode) {}
 
-    int insertHelper(key_struct key);
-    void splitChild(int index, BTreeNode* node);
-    string search(string key);
-  
-    void printNode();
+    int insertHelper(string key,Btree* btree);
+    string search(string key,Btree* Btree);
+    
+    
 
-};
-
-
-class Btree {
-    private:
-    BTreeNode *root;
-    public:
-        void insert(string key, string value) ;
-        string search(string key) ;
-        void printTree() ;
-        Btree(string database_name);
-        BTreeNode* readPage(int offset);
-        
 };

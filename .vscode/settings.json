@@ -1,9 +1,8 @@
 {
-    "editor.tabSize": 1,
-    "editor.insertSpaces": true,
-    "editor.detectIndentation": false,
-    "[cpp]": {
-        "editor.tabSize": 4,
-        "editor.insertSpaces": true
+    "files.associations": {
+        "iostream": "cpp",
+        "*.tcc": "cpp",
+        "algorithm": "cpp",
+        "ostream": "cpp"
     }
 }
