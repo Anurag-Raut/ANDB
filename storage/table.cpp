@@ -32,8 +32,7 @@ void Table::Insert( vector<string> args) {
         cout << "ERROR : args size not equal to column data";
         return;
     }
-    uint64_t rootPageNumber= btree->insert(args[0],args[1]);
-    this->rootPageNumber=rootPageNumber;
+    btree->insert(args[0],args[1]);
 
 
 
