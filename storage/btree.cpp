@@ -154,7 +154,7 @@ void writePage(BTreeNode* node, Btree* btree) {
     // data_file->seekp(0, ios::end);
 
     // Write the buffer to the file
-    btree->data_file->seekp(0, ios::end);
+    // btree->data_file->seekp(0, ios::end);
 
     btree->data_file->write(buffer, sizeof(buffer));
     // Flush to ensure data is written
