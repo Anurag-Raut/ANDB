@@ -22,6 +22,7 @@ struct Block {
         }
         return size;
     }
+
 };
 
 
@@ -37,6 +38,7 @@ class Btree{
         optional<Block> search(string key) ;
         void printTree(uint64_t rootPageNumber) ;
         Btree(fstream* fp);
+        optional<Block> deleteNode(string key);
         // BTreeNode* readPage(int pageNumber);
         // void writePage(BTreeNode* node);
         // void updateFlush(BTreeNode* node);
@@ -58,6 +60,8 @@ public:
     optional<Block> search(string key,Btree* Btree);
     void  balance(Btree* bt,vector<pair<BTreeNode*,int>> &parents);
     void insertAtIndex(int index,Block block);
+
+    optional<Block> deleteHelper(string key,Btree *btree,vector<pair<BTreeNode*, int>> parents);
     
 
 };

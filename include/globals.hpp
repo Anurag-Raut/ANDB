@@ -5,11 +5,12 @@
 #include <iostream>
 
 using namespace std;
-extern const unsigned int PAGE_SIZE = 8096;  
+extern const unsigned int PAGE_SIZE = 150;  
 extern const string BASE_DIRECTORY = "base/";
 
 extern const int HEADER_SIZE = sizeof(uint32_t) ; // Page ID 
 extern const int OFFSET_SIZE=sizeof(uint16_t);
+
 
 
 std::string getDatabaseFilePath(std::string database_name) {

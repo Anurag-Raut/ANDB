@@ -91,9 +91,9 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     memcpy(buffer + sizeof(uint16_t), &newBegOffset, sizeof(newBegOffset));
     memcpy(buffer + sizeof(uint16_t) * 2, &newEndOffset, sizeof(newEndOffset));
 
+    cout<<"BUFFER OFFSET: "<<blockOffset<<endl;
     // Copy the block offset for the new entry
     memcpy(buffer + headerSize + (metadata.noOfBlocks - 1) * sizeof(uint16_t), &blockOffset, sizeof(blockOffset));
-
     // Copy the actual value into the page
     memcpy(buffer + blockOffset, val.c_str(), val.size());
 
@@ -101,14 +101,14 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     data_file->seekp(pageOffset, ios::beg);
     data_file->write(buffer, PAGE_SIZE);
     // cout<<string(to_string(pageNumber)+ " " + to_string(newEndOffset - newBegOffset))<< endl;;
-    *page_file << string(to_string(pageNumber) + " " + to_string(newEndOffset - newBegOffset))<<endl;
+    *page_file << string(to_string(pageNumber) + " " + to_string(newEndOffset - newBegOffset)) << endl;
     page_file->flush();
     return metadata.noOfBlocks - 1;
 }
 
 int updateValueInDataFile(string val, uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, fstream* page_file) {
     int pageOffset = pageNumber * PAGE_SIZE;
-    char buffer[PAGE_SIZE] = {0};
+    char buffer[PAGE_SIZE] ;
 
     // Read the page data
     data_file->seekg(pageOffset, ios::beg);
@@ -165,7 +165,7 @@ Block Table::writeData(string key, string value) {
             tokens.push_back(token);
         }
         if (tokens.size() < 2) {
-            pageNumber = pageNumber ;
+            pageNumber = pageNumber;
             continue;
         }
 
@@ -207,6 +207,85 @@ Block Table::writeData(string key, string value) {
     };
 }
 
+void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, fstream* page_file) {
+    char buffer[PAGE_SIZE];
+    uint32_t headerSize = 3 * sizeof(uint16_t);
+
+    int pageOffset = pageNumber * PAGE_SIZE;
+    data_file->seekg(pageOffset, ios::beg);
+    data_file->read(buffer, PAGE_SIZE);
+    MetadataDataPage metadata = readMetadata(buffer);
+    int ogNoOfBlocks = metadata.noOfBlocks;
+    int ogEndOffset=metadata.endOffset;
+    char newBuffer[PAGE_SIZE];
+    metadata.noOfBlocks = 0;
+    metadata.begOffset = headerSize;
+    metadata.endOffset = PAGE_SIZE;
+
+    int j = 0;
+    for (int i = 0; i < ogNoOfBlocks ; i++) {
+        // get blockOffset
+        cout<<"pepo pog i: "<<i+1<<endl;
+        if (i == blockNumber) {
+            continue;
+        }
+        uint16_t blockOffset;
+        memcpy(&blockOffset, buffer  + headerSize + (sizeof(uint16_t) * i), sizeof(blockOffset));
+        cout<<"BLOCK OFFSET: "<<blockOffset<<endl;
+        memcpy(newBuffer + headerSize +( j * sizeof(uint16_t)), &blockOffset, sizeof(uint16_t));
+
+        uint16_t prevBlockOffset;
+
+        if (i == 0) {
+            prevBlockOffset = PAGE_SIZE;
+        } else {
+            memcpy(&prevBlockOffset, buffer + headerSize + (sizeof(uint16_t) * (i - 1)), sizeof(prevBlockOffset));
+        }
+
+        uint16_t sizeOfValueCell = prevBlockOffset - blockOffset;
+        cout<<"size of value: "<<sizeOfValueCell<<" "<<prevBlockOffset<<endl;
+        cout<<"newBuff: "<<(metadata.endOffset - sizeOfValueCell)<<endl;
+        memcpy(newBuffer + (metadata.endOffset - sizeOfValueCell), buffer + (prevBlockOffset - sizeOfValueCell), sizeOfValueCell);
+        metadata.noOfBlocks++;
+        metadata.begOffset += sizeof(uint16_t);
+        metadata.endOffset -= sizeOfValueCell;
+
+        j++;
+
+        // memcpy(&nextBlockOffset, buffer + headerSize + (sizeof(uint16_t) * (blockNumber + 1)), sizeof(nextBlockOffset));
+        // uint16_t sizeOfNextValue=blockOffset-nextBlockOffset;
+        // memcpy(&buffer+prevBlockOffset-sizeOfNextValue,buffer+nextBlockOffset,sizeOfNextValue);
+
+        // //moving value
+        // memcpy(&buffer+blockNumber,buffer+nextBlockOffset,blockOffset-nextBlockOffset);
+
+        // memcpy(&buffer+headerSize+(sizeof(uint16_t)*blockNumber), buffer + headerSize + (sizeof(uint16_t) * blockNumber+1), sizeof(blockOffset));
+    }
+    cout<<"no of blocks:"<<metadata.noOfBlocks<<" og blocks: "<<ogNoOfBlocks<<endl;
+    memcpy(newBuffer, &metadata.noOfBlocks, sizeof(metadata.noOfBlocks));
+    memcpy(newBuffer + sizeof(uint16_t), &metadata.begOffset, sizeof(metadata.begOffset));
+    memcpy(newBuffer + sizeof(uint16_t) * 2, &metadata.endOffset, sizeof(metadata.endOffset));
+    data_file->clear();
+    data_file->seekp(pageOffset, ios::beg);
+    data_file->write(newBuffer, PAGE_SIZE);
+    data_file->flush();
+    page_file->clear();
+
+    page_file->seekg(0, ios::beg);
+    page_file->seekp(0, ios::beg);
+    // cout << "LAST PAGEEE: " << pageNumber << endl;
+    for (int i = 0; i < pageNumber; ++i) {
+        string line;
+        if (!getline(*page_file, line)) {
+            // If we can't read a line, we've reached the end of the file
+            // You might want to handle this case (e.g., by seeking to the end or throwing an exception)
+            page_file->seekg(0, ios::end);
+            break;
+        }
+    }
+    *page_file << string(to_string(pageNumber) + " " + to_string(metadata.endOffset - metadata.begOffset)) << endl;
+    page_file->flush();
+}
 // int updateValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, bool newPage) {
 //     int pageOffset = pageNumber * PAGE_SIZE;
 //     char buffer[PAGE_SIZE] = {0};
@@ -251,7 +330,6 @@ Block Table::writeData(string key, string value) {
 
 optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
     char buffer[PAGE_SIZE];
-
     int pageOffset = pageNumber * PAGE_SIZE;
     data_file->seekg(pageOffset, ios::beg);
     data_file->read(buffer, PAGE_SIZE);
@@ -296,5 +374,18 @@ string Table::Search(string key) {
         return "KEY NOT FOUND";
     } else {
         return "KEY NOT FOUND";
+    }
+}
+
+void Table::deleteValue(string key) {
+    optional<Block> deletedBlock = btree->deleteNode(key);
+    this_thread::sleep_for(chrono::milliseconds(2000));
+
+    if (deletedBlock.has_value()) {
+        Block delBlock = deletedBlock.value();
+        cout<<"deleted page Number: "<<delBlock.pageNumber.value()<<" deleted page Block Number: "<<delBlock.blockNumber.value()<<endl;
+        deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file);
+    } else {
+        cout << "Record Not found" << endl;
     }
 }
