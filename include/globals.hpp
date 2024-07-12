@@ -5,7 +5,7 @@
 #include <iostream>
 
 using namespace std;
-extern const unsigned int PAGE_SIZE = 150;  
+extern const unsigned int PAGE_SIZE = 8096;  
 extern const string BASE_DIRECTORY = "base/";
 
 extern const int HEADER_SIZE = sizeof(uint32_t) ; // Page ID 
@@ -20,7 +20,7 @@ std::string getDatabaseFilePath(std::string database_name) {
             throw runtime_error("Failed to create directory: " + filepath);
         }
     }
-    return BASE_DIRECTORY + database_name  +  "/data.txt";
+    return BASE_DIRECTORY + database_name  +  "/data";
 }
 std::string getMetadataFilePath(std::string database_name) {
         string filepath=BASE_DIRECTORY+database_name;
@@ -31,7 +31,31 @@ std::string getMetadataFilePath(std::string database_name) {
             throw runtime_error("Failed to create directory: " + filepath);
         }
     }
-    return BASE_DIRECTORY + database_name  +  "/metadata.txt";
+    return BASE_DIRECTORY + database_name  +  "/metadata";
+}
+std::string getPageFilePath(std::string database_name) {
+        string filepath=BASE_DIRECTORY+database_name;
+
+    namespace fs = std::filesystem;
+    if (!fs::exists(filepath)) {
+        if (!fs::create_directory(filepath)) {
+            throw runtime_error("Failed to create directory: " + filepath);
+        }
+    }
+    return BASE_DIRECTORY + database_name  +  "/page";
+}
+
+std::string getIndexFilePath(std::string database_name,std::string table_name,std::string index_name){
+
+    string filepath=BASE_DIRECTORY+database_name+"/"+table_name+"/indexes";
+
+    namespace fs = std::filesystem;
+    if (!fs::exists(filepath)) {
+        if (!fs::create_directory(filepath)) {
+            throw runtime_error("Failed to create directory: " + filepath);
+        }
+    }
+    return filepath + "/"+ index_name;
 }
 
 

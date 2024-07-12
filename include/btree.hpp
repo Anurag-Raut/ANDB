@@ -3,17 +3,27 @@
 #include <vector>
 #include <string>
 #include <fstream>
-
+#include <optional>
 using namespace std;
+
 
 struct Block {
     string key;
-    uint64_t pageNumber;
-    uint16_t blockNumber;
+    optional<uint64_t> pageNumber;
+    optional<uint16_t> blockNumber;
     
-    
-    int size() const { return sizeof(key)+sizeof(pageNumber)+sizeof(blockNumber); }
+    int size() const {
+        int size = sizeof(key);
+        if (pageNumber.has_value()) {
+            size += sizeof(pageNumber.value());
+        }
+        if (blockNumber.has_value()) {
+            size += sizeof(blockNumber.value());
+        }
+        return size;
+    }
 };
+
 
 
 
@@ -22,7 +32,7 @@ class Btree{
 
 
     public:
-    fstream *data_file; 
+    fstream *index_file; 
         void insert(string key, string value) ;
         string search(string key) ;
         void printTree(uint64_t rootPageNumber) ;

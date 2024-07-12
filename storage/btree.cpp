@@ -17,7 +17,7 @@
 
 using namespace std;
 
-Btree::Btree(fstream* fp) { data_file = fp; }
+Btree::Btree(fstream* fp) { index_file = fp; }
 
 #include <cerrno>
 #include <cstring>
@@ -29,12 +29,12 @@ Btree::Btree(fstream* fp) { data_file = fp; }
 BTreeNode* readPage(int pageNumber, Btree* btree) {
     // cout << "READING PAGE: " << pageNumber << endl;
     char buffer[PAGE_SIZE];
-    btree->data_file->clear();
-    btree->data_file->seekg(pageNumber * PAGE_SIZE, std::ios::beg);
+    btree->index_file->clear();
+    btree->index_file->seekg(pageNumber * PAGE_SIZE, std::ios::beg);
 
-    if (!btree->data_file->read(buffer, PAGE_SIZE)) {
+    if (!btree->index_file->read(buffer, PAGE_SIZE)) {
         // std::cerr << "ERROR: " << std::strerror(errno) << std::endl;
-        btree->data_file->clear();
+        btree->index_file->clear();
         // cout << "ENDING READ \n\n\n";
 
         return nullptr;
@@ -101,8 +101,8 @@ void writePage(BTreeNode* node, Btree* btree) {
     char buffer[PAGE_SIZE];
     // Write leaf node flag
 
-    btree->data_file->seekp(0, ios::end);
-    std::streampos file_size = btree->data_file->tellp();
+    btree->index_file->seekp(0, ios::end);
+    std::streampos file_size = btree->index_file->tellp();
     // cout << "FILE SSIZE: " << file_size << endl;
     uint64_t current_page = file_size / PAGE_SIZE;
     // cout << "CUURENT PAGE: " << current_page << endl;
@@ -151,14 +151,14 @@ void writePage(BTreeNode* node, Btree* btree) {
     // cout << "LEAF NODE: " << leafNode << " Number of blocks: " << noOfBlocks << endl;
     // cout << "BUFFER: " << buffer << endl;
     // S    eek to the end of the file to append the new page
-    // data_file->seekp(0, ios::end);
+    // index_file->seekp(0, ios::end);
 
     // Write the buffer to the file
-    // btree->data_file->seekp(0, ios::end);
+    // btree->index_file->seekp(0, ios::end);
 
-    btree->data_file->write(buffer, sizeof(buffer));
+    btree->index_file->write(buffer, sizeof(buffer));
     // Flush to ensure data is written
-    btree->data_file->flush();
+    btree->index_file->flush();
     // cout << "ENDING WRITE \n\n\n";
 }
 
@@ -214,13 +214,13 @@ void updateFlush(BTreeNode* node, Btree* btree) {
     // cout << "LEAF NODE: " << leafNode << " Number of blocks: " << noOfBlocks << endl;
     // cout << "BUFFER: " << buffer << endl;
     // S    eek to the end of the file to append the new page
-    // data_file->seekp(0, ios::end);
-    btree->data_file->seekp(node->pageNumber * PAGE_SIZE, ios::beg);
+    // index_file->seekp(0, ios::end);
+    btree->index_file->seekp(node->pageNumber * PAGE_SIZE, ios::beg);
 
     // Write the buffer to the file
-    btree->data_file->write(buffer, sizeof(buffer));
+    btree->index_file->write(buffer, sizeof(buffer));
     // Flush to ensure data is written
-    btree->data_file->flush();
+    btree->index_file->flush();
 }
 
 void Btree::insert(string key, string value) {
@@ -253,7 +253,7 @@ string Btree::search(string key) {
 
 void Btree::printTree(uint64_t rootPageNumber) {
     BTreeNode* root = readPage(rootPageNumber, this);
-    // cout << "LYOO BHAI:" << root->children.size() << endl;
+    cout << "LYOO BHAI:" << root->blocks.size() << endl;
     std::queue<BTreeNode*> q;
     int size = 1;
     q.push(root);
@@ -330,8 +330,7 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
         int mid = this->blocks.size() / 2;
         Block newData = Block{
             key : this->blocks[mid].key,
-            pageNumber : 0,
-            blockNumber : 0,
+            
         };
         int parentSize = blocks.size();
         // cout << "MID: " << mid << " " << parentSize << endl;
@@ -364,12 +363,24 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
             c2->children.push_back(this->children[0]);
             this->children.erase(this->children.begin());
         }
-        for (int i = mid + 1; i < parentSize; i++) {
-            // cout << this->blocks[1].key << " ";
-            c2->blocks.push_back(this->blocks[1]);
-            c2->size += this->blocks[1].size();
+        Block midBlock=this->blocks[0];
+        int secondBlockStart;
+        int offset;
+        if(leafNode){
+            secondBlockStart=mid;
+            offset=0;
 
-            this->blocks.erase(this->blocks.begin() + 1);
+        }
+        else{
+            secondBlockStart=mid+1;
+            offset=1;
+        }
+        for (int i = secondBlockStart; i < parentSize; i++) {
+            // cout << this->blocks[1].key << " ";
+            c2->blocks.push_back(this->blocks[offset]);
+            c2->size += this->blocks[offset].size();
+
+            this->blocks.erase(this->blocks.begin()+offset );
             if (!leafNode) {
                 // cout<<"CHILDDD DD: "<<this->children[0]<<endl;
                 c2->children.push_back(this->children[0]);
@@ -382,9 +393,11 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
         writePage(c1, btree);
         writePage(c2, btree);
 
-        // cout << "C1 : " << c1->children.size() << "C2 : " << c2->children.size() << endl;
-        // cout << "C :" << this->pageNumber << endl;
-
+        // cout << "C1 : " << c1->blocks.size() << "C2 : " << c2->blocks.size() << endl;
+        // cout << "C :" << this->children.size() << endl;
+        if(leafNode){
+        this->blocks.push_back(midBlock);
+        }
         this->children.push_back(c1->pageNumber);
         this->children.push_back(c2->pageNumber);
         this->leafNode = false;
@@ -400,17 +413,18 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
         BTreeNode* parent = parents.back().first;
         int indexToInsert = parents.back().second;
         // cout << "INDEX TO INSERT:  " << indexToInsert << endl;
-        Block newBlock = Block{key : this->blocks[mid].key, pageNumber : this->pageNumber, blockNumber : 0};
+        Block newBlock = Block{key : this->blocks[mid].key};
         // cout << "Parent size " << parent->size << endl;
 
         parent->insertAtIndex(indexToInsert, newBlock);
-        size -= blocks[mid].size();
-        blocks.erase(blocks.begin() + mid);
-        for (int i = mid + 1; i < originalSize; i++) {
+        // size -= blocks[mid].size();
+        
+        // blocks.erase(blocks.begin() + mid);
+        for (int i = mid ; i < originalSize; i++) {
             // cout << "NEW CHILD: " << blocks[mid].key << endl;
             newChildren->blocks.push_back(blocks[mid]);
             newChildren->size += blocks[mid].size();
-            size = blocks[mid].size();
+            size -= blocks[mid].size();
 
             blocks.erase(blocks.begin() + mid);
         }
@@ -437,12 +451,12 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
         int originalSize = blocks.size();
         BTreeNode* parent = parents.back().first;
         int indexToInsert = parents.back().second;
-        Block newBlock = Block{key : this->blocks[mid].key, pageNumber : this->pageNumber, blockNumber : 0};
+        Block newBlock = Block{key : this->blocks[mid].key};
         parent->insertAtIndex(indexToInsert, newBlock);
         size -= blocks[mid].size();
         // cout<<"MID: "<<mid<<"endl";
         blocks.erase(blocks.begin() + mid);
-        for (int i = mid + 1; i < originalSize; i++) {
+        for (int i = mid+1 ; i < originalSize; i++) {
             // cout << "NEW CHILD: " << blocks[mid].key << endl;
             newChildren->blocks.push_back(blocks[mid]);
             newChildren->size += blocks[mid].size();
@@ -470,6 +484,7 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
             parent->balance(btree, newParents);
         }
         updateFlush(parent, btree);
+        
 
 
     }
@@ -493,13 +508,19 @@ void BTreeNode::insertAtIndex(int index, Block data) {
 string BTreeNode::search(string key, Btree* btree) {
     int i = 0;
     // cout<<"SEARCH "<<" NODE SIZE "<<blocks.size()<<"  "<<endl;
+    if(leafNode){
     while (i < blocks.size() && key > blocks[i].key) i++;
+
+    }
+    else{
+        while (i < blocks.size() && key >= blocks[i].key) i++;
+
+    }
     // cout<<"THIS IS I: "<<i<<endl;
-    if (i < blocks.size() && blocks[i].key == key) {
+    if (leafNode && i<blocks.size() && blocks[i].key == key) {
         return (blocks[i].key);
     }
-    // cout << blocks[i].key << " ";
-    if (leafNode) return "Key not found";
+    else if (leafNode) return "Key not found";
     BTreeNode* childrenNode = readPage(children[i], btree);
     return childrenNode->search(key, btree);
 }

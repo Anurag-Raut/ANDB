@@ -4,6 +4,9 @@
         "*.tcc": "cpp",
         "algorithm": "cpp",
         "ostream": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "iosfwd": "cpp",
+        "fstream": "cpp",
+        "stdexcept": "cpp"
     }
 }

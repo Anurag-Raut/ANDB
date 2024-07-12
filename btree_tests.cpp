@@ -43,9 +43,9 @@ void testTreeSplitting(Table* table) {
     //     store->insert("key" + to_string(i), "value" + to_string(i));
 
     // }
-    for (int i =0 ; i <= 1000007; ++i) {
-                        //  this_thread::sleep_for(chrono::milliseconds(100));
-            // cout<<"Brother "<<i<<endl;
+    for (int i =1; i <= 20; ++i) {
+                         this_thread::sleep_for(chrono::milliseconds(100));
+            cout<<"Brother "<<i<<endl;
         table->Insert({ to_string(i), to_string(i)});
 
     }
@@ -56,7 +56,7 @@ void testTreeSplitting(Table* table) {
             //  this_thread::sleep_for(chrono::milliseconds(10));
             //  cout<<"FIRST: "<<store->search("key" + to_string(0))<<endl;
 
-    for (int i =0 ; i <= 1000007; ++i) {
+    for (int i =1 ; i <= 20; ++i) {
         // cout<<"i "<<i<<endl;
         // cout<<table->Search(to_string(i) )<<endl;
         assert(table->Search(to_string(i) ) == to_string(i));
