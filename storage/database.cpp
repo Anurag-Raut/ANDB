@@ -35,7 +35,7 @@ Database::Database(string name) {
     data_file->open(dataFilePath, ios::out | ios::trunc| ios::in);
     metadata_file->open(metadataFilePath, ios::out | ios::trunc| ios::in);
 
-    this->page_file->open(pageFilePath, ios::out | ios::trunc| ios::in);
+    page_file->open(pageFilePath, ios::out | ios::trunc| ios::in);
 
 
 

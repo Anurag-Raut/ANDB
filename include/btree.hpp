@@ -33,8 +33,8 @@ class Btree{
 
     public:
     fstream *index_file; 
-        void insert(string key, string value) ;
-        string search(string key) ;
+        void insert(Block data, string value) ;
+        optional<Block> search(string key) ;
         void printTree(uint64_t rootPageNumber) ;
         Btree(fstream* fp);
         // BTreeNode* readPage(int pageNumber);
@@ -54,11 +54,10 @@ public:
 
     BTreeNode(bool isLeafNode) : size(0), leafNode(isLeafNode) {}
 
-    void insertHelper(string key,Btree* btree,vector<pair<BTreeNode*,int>> &parents);
-    string search(string key,Btree* Btree);
+    void insertHelper(Block newData,Btree* btree,vector<pair<BTreeNode*,int>> &parents);
+    optional<Block> search(string key,Btree* Btree);
     void  balance(Btree* bt,vector<pair<BTreeNode*,int>> &parents);
     void insertAtIndex(int index,Block block);
-    
     
 
 };

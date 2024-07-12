@@ -7,6 +7,11 @@
         "cmath": "cpp",
         "iosfwd": "cpp",
         "fstream": "cpp",
-        "stdexcept": "cpp"
+        "stdexcept": "cpp",
+        "chrono": "cpp",
+        "random": "cpp",
+        "limits": "cpp",
+        "semaphore": "cpp",
+        "optional": "cpp"
     }
 }
