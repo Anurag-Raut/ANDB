@@ -22,7 +22,7 @@ class Table {
    private:
     fstream* page_file;
     fstream* data_file;
-
+    int primary_key_index=0;
    public:
     uint64_t rootPageNumber = 0;
     Btree* btree;
@@ -30,7 +30,7 @@ class Table {
 
     vector<Column> columns;
     string table_name;
-    Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file);
+    Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file,int primary_key_index);
     void Insert(vector<string> args);
     void Print();
     void Update(vector<string> args);

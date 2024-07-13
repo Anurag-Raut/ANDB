@@ -45,7 +45,7 @@ void testTreeSplitting(Table* table) {
     for (int i = 1; i <= 18; ++i) {
         this_thread::sleep_for(chrono::milliseconds(100));
         // cout<<"Brother "<<i<<endl;
-        table->Insert({to_string(i), to_string(i)});
+        table->Insert({to_string(i), to_string(i),to_string(8.78),string("anurag raut")});
     }
     cout << "INSERTION DONE" << endl;
 
@@ -89,7 +89,7 @@ void testTreeSplitting(Table* table) {
 
 void test() {
     Database* database = new Database("test");
-    Table* table = database->CreateTable("test_table", {"int", "string"}, {"age", "name"});
+    Table* table = database->CreateTable("test_table", {"int","int","float", "string"}, {"id","age","salatary", "name"},0);
     // this_thread::sleep_for(chrono::milliseconds(1000));
     // table->Insert({"1","anurag"});
     // this_thread::sleep_for(chrono::milliseconds(1000));

@@ -573,8 +573,8 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
         c2->prevSibling = c1->pageNumber;
         c2->nextSibling = this->nextSibling;
 
-        // cout<<"C1 : "<<c1->prevSibling<<" "<<c1->nextSibling<<endl;
-        // cout<<"C2 : "<<c2->prevSibling<<" "<<c2->nextSibling<<endl;
+            // cout<<"C1 : "<<c1->prevSibling<<" "<<c1->nextSibling<<endl;
+            // cout<<"C2 : "<<c2->prevSibling<<" "<<c2->nextSibling<<endl;
 
         updateSiblingPointers(c1, btree);
         updateSiblingPointers(c2, btree);

@@ -43,7 +43,7 @@ struct PageMap {
         offset += sizeof(this->noOfBlocksAvailable);
     }
 };
-Table::Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file) {
+Table::Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file,int primary_key_index) {
     if (types.size() != names.size()) {
         return;
     }
@@ -68,6 +68,38 @@ Table::Table(string table_name, vector<string> types, vector<string> names, stri
 
     this->btree = new Btree(index_file);
 }
+bool parseArgument(const string& arg, const string& type) {
+    if (type == "string") {
+        // No parsing needed for strings, always valid
+        return true;
+    } else if (type == "int") {
+        try {
+            stoi(arg);
+            return true;
+        } catch (invalid_argument& e) {
+            return false;
+        } catch (out_of_range& e) {
+            return false;
+        }
+    } else if (type == "float") {
+        try {
+            stof(arg);
+                        return true;
+
+        } catch (invalid_argument& e) {
+            return false;
+        } catch (out_of_range& e) {
+            return false;
+        }
+    } else if (type == "bool") {
+        if (arg == "true" || arg == "false" || arg == "1" || arg == "0") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return false;  // Unknown type
+}
 
 void Table::Insert(vector<string> args) {
     if (args.size() != columns.size()) {
@@ -75,7 +107,28 @@ void Table::Insert(vector<string> args) {
         return;
     }
 
-    Block newData = writeData(args[0], args[1]);
+    // type checking
+
+    for (int i = 0; i < args.size(); i++) {
+        string arg = args[i];
+        string type = columns[i].type;
+
+        bool isValid = parseArgument(arg, type);
+        if (!isValid) {
+            cerr << "Error: Argument " << arg << " cannot be parsed as type " << type << endl;
+            return;
+        }
+    }
+    stringstream ss;
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (i != 0) {
+            ss << ",";
+        }
+        ss << args[i];
+    }
+    string joinedArgs = ss.str();
+
+    Block newData = writeData(args[primary_key_index], joinedArgs);
     // cout<<"key: "<<newData.key<<"BLOCK: " <<newData.blockNumber.value()<<endl;
     btree->insert(newData, args[1]);
 }
@@ -134,7 +187,7 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     data_file->clear();
     data_file->seekp(pageOffset, ios::beg);
     data_file->write(buffer, PAGE_SIZE);
-        data_file->flush();
+    data_file->flush();
 
     PageMap newPageMapping{.pageNumber = pageNumber, .availableSpace = (newEndOffset - newBegOffset), .noOfBlocksAvailable = 0
 
@@ -199,12 +252,11 @@ Block Table::writeData(string key, string value) {
     uint64_t pageNumber = 0;
     bool newPage = true;
     page_file->seekg(0, ios::beg);
-    
 
     while (true) {
         PageMap pagemap;
         int offset = pageNumber * pagemap.size();
-        page_file->seekg(0,ios::end);
+        page_file->seekg(0, ios::end);
         std::streampos endPos = page_file->tellg();
         // cout<<"ENDPOS:  "<<endPos<<endl;
         if (offset >= endPos) {
@@ -212,14 +264,14 @@ Block Table::writeData(string key, string value) {
         }
         pagemap.readFromFile(pageNumber, page_file);
         if (pagemap.availableSpace > value.size() + (2 * sizeof(uint16_t))) {
-            newPage=false;
+            newPage = false;
             break;
         }
         pageNumber++;
     }
-//     cout << "INSERTING: " << key << endl;
-//     cout << "PWGEFE:  " << pageNumber << endl;
-// cout<<"newPage "<<newPage<<endl;
+    //     cout << "INSERTING: " << key << endl;
+    //     cout << "PWGEFE:  " << pageNumber << endl;
+    // cout<<"newPage "<<newPage<<endl;
     int blockNumber = insertValueToDataFile(value, pageNumber, data_file, page_file, newPage);
     if (blockNumber == -1) {
         // cout << "FFF" << endl;
@@ -405,63 +457,56 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
 
 void Table::Print() { btree->printTree(this->rootPageNumber); }
 
-void Table::RangeQuery(string key1,string key2){
-    pair<BTreeNode*,optional<Block>> SearchResult1=btree->search(key1);
-    BTreeNode* currentNode=SearchResult1.first;
+void Table::RangeQuery(string key1, string key2) {
+    pair<BTreeNode*, optional<Block>> SearchResult1 = btree->search(key1);
+    BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
-        cout<<"KEY NOT FOUND"<<endl;
-        return ;
+        cout << "KEY NOT FOUND" << endl;
+        return;
     }
     Block data = optData.value();
-    string key=data.key;
-    uint64_t pgNumber=data.pageNumber.value();
-    uint16_t blNumber=data.blockNumber.value();
-    int i=0;
-    while(i<currentNode->blocks.size()&& currentNode->blocks[i].key<key1 ) i++;
+    string key = data.key;
+    uint64_t pgNumber = data.pageNumber.value();
+    uint16_t blNumber = data.blockNumber.value();
+    int i = 0;
+    while (i < currentNode->blocks.size() && currentNode->blocks[i].key < key1) i++;
 
-    while(key<=key2){
-        blNumber=currentNode->blocks[i].blockNumber.value();
+    while (key <= key2) {
+        blNumber = currentNode->blocks[i].blockNumber.value();
         // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
-        pgNumber=currentNode->blocks[i].pageNumber.value();
+        pgNumber = currentNode->blocks[i].pageNumber.value();
         optional<string> foundValue = readValue(pgNumber, blNumber);
-        cout<<"FOUND VALUE :" <<foundValue.value()<<endl;
+        cout << "FOUND VALUE :" << foundValue.value() << endl;
 
-        if(key==key2){
+        if (key == key2) {
             return;
         }
-        if((i+1) < currentNode->blocks.size()){
-            i=i+1;
-        }
-        else{
+        if ((i + 1) < currentNode->blocks.size()) {
+            i = i + 1;
+        } else {
             // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
-            BTreeNode* nextNode=btree->readPage(currentNode->nextSibling);
+            BTreeNode* nextNode = btree->readPage(currentNode->nextSibling);
             // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
-            i=0;
+            i = 0;
             // cout<<"AVVEE BHAIII :"<<nextNode->pageNumber<<endl;
-            currentNode=nextNode;
-            
+            currentNode = nextNode;
         }
-        key=currentNode->blocks[i].key;
-
-
+        key = currentNode->blocks[i].key;
     }
-
-
 }
 
 string Table::Search(string key) {
-    pair<BTreeNode*,optional<Block>> SearchData=btree->search(key);
+    pair<BTreeNode*, optional<Block>> SearchData = btree->search(key);
     optional<Block> optData = SearchData.second;
     // cout<<"KEY: "<<key<<" PAGE NUMBER: " << optData.value().pageNumber.value()<<" BLOCK NUMBER: "<<optData.value().blockNumber.value()<<endl;
     if (optData.has_value()) {
         Block data = optData.value();
-        cout<<"STRANGER: "<<data.pageNumber.value()<<endl;
-        
-        // BTreeNode* startNode=btree->readPage(data.pageNumber.value());
-        cout<<"KEY:: "<<key<<"  MEDDIATORS:  " <<SearchData.first->nextSibling<<endl;
+        cout << "STRANGER: " << data.pageNumber.value() << endl;
 
+        // BTreeNode* startNode=btree->readPage(data.pageNumber.value());
+        cout << "KEY:: " << key << "  MEDDIATORS:  " << SearchData.first->nextSibling << endl;
 
         // cout<<"key : "<<key<<data.pageNumber.value()<<data.blockNumber.value()<<endl;
         optional<string> foundValue = readValue(data.pageNumber.value(), data.blockNumber.value());
@@ -475,11 +520,10 @@ string Table::Search(string key) {
     }
 }
 
-void Table::Update(vector<string> args){
+void Table::Update(vector<string> args) {
     deleteValue(args[0]);
     Insert(args);
-
-}   
+}
 
 void Table::deleteValue(string key) {
     optional<Block> deletedBlock = btree->deleteNode(key);

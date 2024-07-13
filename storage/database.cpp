@@ -1,19 +1,19 @@
-#include "../storage/table.cpp"
-#include "../include/globals.hpp"
 #include "../include/database.hpp"
-#include <string>
+
 #include <fstream>
 #include <iostream>
+#include <string>
+
+#include "../include/globals.hpp"
+#include "../storage/table.cpp"
 
 using namespace std;
-
-
 
 Database::Database(string name) {
     string dataFilePath = getDatabaseFilePath(name);
     string metadataFilePath = getMetadataFilePath(name);
     string pageFilePath = getPageFilePath(name);
-    this->name=name;
+    this->name = name;
     // Debugging output
     cout << "Attempting to create/open files at: " << dataFilePath << " and " << metadataFilePath << endl;
 
@@ -28,16 +28,14 @@ Database::Database(string name) {
     if (!std::filesystem::exists(metadataFileDir)) {
         std::filesystem::create_directories(metadataFileDir);
     }
-      if (!std::filesystem::exists(pageFileDir)) {
+    if (!std::filesystem::exists(pageFileDir)) {
         std::filesystem::create_directories(pageFileDir);
     }
 
-    data_file->open(dataFilePath, ios::out | ios::trunc| ios::in);
-    metadata_file->open(metadataFilePath, ios::out | ios::trunc| ios::in);
+    data_file->open(dataFilePath, ios::out | ios::trunc | ios::in);
+    metadata_file->open(metadataFilePath, ios::out | ios::trunc | ios::in);
 
-    page_file->open(pageFilePath, ios::out | ios::trunc| ios::in);
-
-
+    page_file->open(pageFilePath, ios::out | ios::trunc | ios::in);
 
     // Check if files are opened
     if (data_file->is_open()) {
@@ -46,7 +44,6 @@ Database::Database(string name) {
         cerr << "Error: Failed to open data file: " << dataFilePath << endl;
         throw std::runtime_error("Failed to create database file: " + dataFilePath);
     }
-  
 
     if (metadata_file->is_open()) {
         cout << "Metadata file CREATED." << std::endl;
@@ -55,7 +52,7 @@ Database::Database(string name) {
         throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
     }
 
-     if (page_file->is_open()) {
+    if (page_file->is_open()) {
         cout << "Metadata file CREATED." << std::endl;
     } else {
         cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
@@ -63,23 +60,33 @@ Database::Database(string name) {
     }
 }
 
+Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
+    Table* newTable = new Table(table_name, types, names, this->name, data_file, page_file,primary_key_index);
+    *metadata_file << table_name << " ";
+    for (int i = 0; i < types.size(); i++) {
+        string type = types[i];
 
+        *metadata_file << type;
 
-Table* Database::CreateTable(string table_name,vector<string> types,vector<string> names){
+        if (i != types.size() - 1) {
+            *metadata_file << ",";
+        }
+    }
+    *metadata_file << " ";
 
-    Table *newTable=new Table(table_name,types,names,this->name,data_file,page_file);
-    *metadata_file<<table_name;
+    for (int i = 0; i < names.size(); i++) {
+        string type = types[i];
+
+        *metadata_file << type;
+
+        if (i != types.size() - 1) {
+            *metadata_file << ",";
+        }
+    }
+    *metadata_file << endl;
     metadata_file->flush();
-    tables.push_back(newTable);       
+    tables.push_back(newTable);
     return newTable;
-
-    
-
 }
 
-
-
-
-Database::~Database(){
-    data_file->close();
-}
+Database::~Database() { data_file->close(); }

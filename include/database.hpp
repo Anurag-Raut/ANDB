@@ -20,7 +20,7 @@ class Database {
 
     Database(string database_name);
     ~Database();
-    Table* CreateTable(string table_name,vector<string> types,vector<string> names);
+    Table* CreateTable(string table_name,vector<string> types,vector<string> name0,int primary_key_indexs);
 
 
 };
