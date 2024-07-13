@@ -405,11 +405,64 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
 
 void Table::Print() { btree->printTree(this->rootPageNumber); }
 
+void Table::RangeQuery(string key1,string key2){
+    pair<BTreeNode*,optional<Block>> SearchResult1=btree->search(key1);
+    BTreeNode* currentNode=SearchResult1.first;
+    optional<Block> optData = SearchResult1.second;
+
+    if (!optData.has_value()) {
+        cout<<"KEY NOT FOUND"<<endl;
+        return ;
+    }
+    Block data = optData.value();
+    string key=data.key;
+    uint64_t pgNumber=data.pageNumber.value();
+    uint16_t blNumber=data.blockNumber.value();
+    int i=0;
+    while(i<currentNode->blocks.size()&& currentNode->blocks[i].key<key1 ) i++;
+
+    while(key<=key2){
+        blNumber=currentNode->blocks[i].blockNumber.value();
+        // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
+        pgNumber=currentNode->blocks[i].pageNumber.value();
+        optional<string> foundValue = readValue(pgNumber, blNumber);
+        cout<<"FOUND VALUE :" <<foundValue.value()<<endl;
+
+        if(key==key2){
+            return;
+        }
+        if((i+1) < currentNode->blocks.size()){
+            i=i+1;
+        }
+        else{
+            // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
+            BTreeNode* nextNode=btree->readPage(currentNode->nextSibling);
+            // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
+            i=0;
+            // cout<<"AVVEE BHAIII :"<<nextNode->pageNumber<<endl;
+            currentNode=nextNode;
+            
+        }
+        key=currentNode->blocks[i].key;
+
+
+    }
+
+
+}
+
 string Table::Search(string key) {
-    optional<Block> optData = btree->search(key);
+    pair<BTreeNode*,optional<Block>> SearchData=btree->search(key);
+    optional<Block> optData = SearchData.second;
     // cout<<"KEY: "<<key<<" PAGE NUMBER: " << optData.value().pageNumber.value()<<" BLOCK NUMBER: "<<optData.value().blockNumber.value()<<endl;
     if (optData.has_value()) {
         Block data = optData.value();
+        cout<<"STRANGER: "<<data.pageNumber.value()<<endl;
+        
+        // BTreeNode* startNode=btree->readPage(data.pageNumber.value());
+        cout<<"KEY:: "<<key<<"  MEDDIATORS:  " <<SearchData.first->nextSibling<<endl;
+
+
         // cout<<"key : "<<key<<data.pageNumber.value()<<data.blockNumber.value()<<endl;
         optional<string> foundValue = readValue(data.pageNumber.value(), data.blockNumber.value());
         if (foundValue.has_value()) {
