@@ -33,6 +33,7 @@ class Table {
     Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file);
     void Insert(vector<string> args);
     void Print();
+    void Update(vector<string> args);
     string Search(string key);
     Block writeData(string key, string value);
     optional<string> readValue(uint64_t pageNumber, uint16_t blockNumber);

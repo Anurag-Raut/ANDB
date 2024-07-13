@@ -61,7 +61,7 @@ public:
     void  balance(Btree* bt,vector<pair<BTreeNode*,int>> &parents);
     void insertAtIndex(int index,Block block);
 
-    optional<Block> deleteHelper(string key,Btree *btree,vector<pair<BTreeNode*, int>> parents);
+    pair<optional<Block>,optional<Block>>  deleteHelper(string key,Btree *btree,vector<pair<BTreeNode*, int>> parents);
     
 
 };

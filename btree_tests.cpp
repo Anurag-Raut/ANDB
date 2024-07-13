@@ -50,25 +50,20 @@ void testTreeSplitting(Table* table) {
     cout << "INSERTION DONE" << endl;
 
     table->Print();
-    table->deleteValue(to_string(15));
-    //     table->deleteValue(to_string(4));
+   
 
-    // table->deleteValue(to_string(7));
+    table->deleteValue(to_string(7));
+    table->Update({to_string(1), string("VEGETARIANS")});
     // table->deleteValue(to_string(6));
-    //     table->deleteValue(to_string(8));
+    //     table->deleteValue(to_string(3));
     //             table->deleteValue(to_string(9));
-    //             table->deleteValue(to_string(5));
+    //             table->deleteValue(to_string(17));
 
     //         table->deleteValue(to_string(1));
 
-    table->Print();
-
     // table->Print();
 
-    // cout<<"FUCKING HELL: "<<0<<endl;
-    //  this_thread::sleep_for(chrono::milliseconds(10));
-    //  cout<<"FIRST: "<<store->search("key" + to_string(0))<<endl;
-    // cout<<table->Search(to_string(2) )<<endl;
+   
     for (int i = 1; i <= 17; ++i) {
         // cout<<"i "<<i<<endl;
         cout << "FOR KEY: " << i << "  FOUND: " << table->Search(to_string(i)) << endl;

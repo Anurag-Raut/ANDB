@@ -251,7 +251,7 @@ optional<Block> Btree::deleteNode(string key) {
         cout << "TABLE EMPTY" << endl;
         return nullopt;
     } else {
-        return root->deleteHelper(key, this, parents);
+        return root->deleteHelper(key, this, parents).second;
     }
 }
 
@@ -265,23 +265,26 @@ void removeBlocksAtIndex(BTreeNode* node, int index) {
     node->blocks.pop_back();
 }
 
-optional<Block> BTreeNode::deleteHelper(string key, Btree* btree, vector<pair<BTreeNode*, int>> parents) {
+pair<optional<Block>, optional<Block>> BTreeNode::deleteHelper(string key, Btree* btree, vector<pair<BTreeNode*, int>> parents) {
     if (this->leafNode) {
         int j = 0;
         while (j < blocks.size() && key > blocks[j].key) {
             j++;
         }
-        cout<<"KEY: "<<key << " FUCKING J: " << j << endl;
+        // cout << "KEY: " << key << " FUCKING J: " << j << endl;
         if (j < blocks.size() && blocks[j].key == key) {
+            // cout << "HHHAHHSH " << blocks[j].blockNumber.value() << endl;
+            Block deletedBlock = blocks[j];
             removeBlocksAtIndex(this, j);
-            cout<<"HHHAHHSH"<<endl;
+            // cout << "HHHAHHSH " << blocks[j].blockNumber.value() << endl;
             this->balance(btree, parents);
             // cout<<"PAERNTTE: "<<parents.back().first->blocks.size()<<endl;
             updateFlush(this, btree);
-            return blocks.size() > 0 ? optional<Block>{blocks[0]} : nullopt;
+            // cout<<"LEEEELLOOOOOn0"<<blocks[0].key<<endl;
+            return  make_pair(optional<Block>(blocks[0]), optional<Block>(deletedBlock));
         } else {
-            cout << "NO SUCH RECORD" << endl;
-            return nullopt;
+            // cout << "NO SUCH RECORD" << endl;
+            return {nullopt,nullopt};
         }
 
     } else {
@@ -294,16 +297,20 @@ optional<Block> BTreeNode::deleteHelper(string key, Btree* btree, vector<pair<BT
 
         BTreeNode* childrenNode = readPage(this->children[j], btree);
         parents.push_back({this, j});
-        optional<Block> minFrombottom = childrenNode->deleteHelper(key, btree, parents);
+        pair<optional<Block>, optional<Block>> data = childrenNode->deleteHelper(key, btree, parents);
+        optional<Block> minFrombottom =  data.first;
         // cout<<"UNC=K"<<minFrombottom.has_value()<<endl;
         if (j != 0 && minFrombottom.has_value()) {
             // cout<<"PADa";
-            blocks[j - 1] = minFrombottom.value();
+
+            blocks[j - 1].key = min(minFrombottom.value().key,blocks[j - 1].key);
+
             updateFlush(this, btree);
-            return minFrombottom;
+            // data.first.value().key=min(data.first.value().key,blocks[0].key);
         }
 
-        return minFrombottom;
+
+        return data;
     }
 }
 
@@ -316,7 +323,7 @@ optional<Block> Btree::search(string key) {
 
 void Btree::printTree(uint64_t rootPageNumber) {
     BTreeNode* root = readPage(rootPageNumber, this);
-    cout << "LYOO BHAI:" << root->blocks.size() << endl;
+    // cout << "LYOO BHAI:" << root->blocks.size() << endl;
     std::queue<BTreeNode*> q;
     int size = 1;
     q.push(root);
@@ -387,6 +394,7 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
         return;
     }
     if (blocks.size() == 0) {
+        // cout << "AVEEEE" << endl;
         BTreeNode* parent = parents.back().first;
         int index = parents.back().second;
         BTreeNode* nextChildren = NULL;
@@ -408,7 +416,7 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
             }
         }
         if (index - 1 >= 0) {
-            prevChildren = readPage(parent->children[index -1], btree);
+            prevChildren = readPage(parent->children[index - 1], btree);
             if (prevChildren->blocks.size() > 1) {
                 parent->blocks[index - 1].key = prevChildren->blocks.back().key;
                 insertAtIndex(0, Block{.key = prevChildren->blocks.back().key});
@@ -420,32 +428,32 @@ void BTreeNode::balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
             }
         }
         if (index + 1 < parent->children.size() && nextChildren) {
-            cout<<"OONGAA BOONGA: "<<index<<endl;
-            
+            cout << "OONGAA BOONGA: " << index << endl;
+
             parent->size -= blocks[index - 1].size();
             parent->blocks.erase(parent->blocks.begin() + index - 1);
             parent->children.erase(parent->children.begin() + index);
-            cout<<"HUMANNN : "<<parent->blocks.size()<<endl;
-            if(parent->blocks.size()<1){
+            cout << "HUMANNN : " << parent->blocks.size() << endl;
+            if (parent->blocks.size() < 1) {
                 vector<pair<BTreeNode*, int>> newParents(parents.begin(), parents.end() - 1);
-                parent->balance(btree,newParents);
+                parent->balance(btree, newParents);
             }
-            updateFlush(parent,btree);
+            updateFlush(parent, btree);
 
         } else if (index - 1 >= 0 && prevChildren) {
-            cout<<"BOONGA OONGA"<<endl;
+            cout << "BOONGA OONGA" << endl;
             parent->size -= blocks[index - 1].size();
             parent->blocks.erase(parent->blocks.begin() + index - 1);
             parent->children.erase(parent->children.begin() + index);
-             if(parent->blocks.size()<1){
+            if (parent->blocks.size() < 1) {
                 vector<pair<BTreeNode*, int>> newParents(parents.begin(), parents.end() - 1);
-                parent->balance(btree,newParents);
+                parent->balance(btree, newParents);
             }
-            updateFlush(parent,btree);
-
+            updateFlush(parent, btree);
         }
-    }
-    else if (parents.size() == 0) {
+    } else if (parents.size() == 0) {
+        // cout << "AVEEEE prens" << endl;
+
         // cout << "ASDS" << endl;
         BTreeNode* newRoot = new BTreeNode(false);
         int mid = this->blocks.size() / 2;
@@ -629,6 +637,7 @@ optional<Block> BTreeNode::search(string key, Btree* btree) {
     }
     // cout<<"THIS IS I: "<<i<<endl;
     if (leafNode && i < blocks.size() && blocks[i].key == key) {
+        // cout<<"LOLI meil gaya"<<endl;
         return (blocks[i]);
     } else if (leafNode)
         return nullopt;
