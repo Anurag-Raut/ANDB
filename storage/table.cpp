@@ -1,5 +1,5 @@
 
-#include "../include/table.hpp"
+#include "./include/table.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "../include/database.hpp"
-#include "../include/globals.hpp"
+#include "./include/database.hpp"
+#include "./include/globals.hpp"
 #include "../storage/btree.cpp"
 
 using namespace std;
@@ -503,10 +503,10 @@ string Table::Search(string key) {
     // cout<<"KEY: "<<key<<" PAGE NUMBER: " << optData.value().pageNumber.value()<<" BLOCK NUMBER: "<<optData.value().blockNumber.value()<<endl;
     if (optData.has_value()) {
         Block data = optData.value();
-        cout << "STRANGER: " << data.pageNumber.value() << endl;
+        // cout << "STRANGER: " << data.pageNumber.value() << endl;
 
         // BTreeNode* startNode=btree->readPage(data.pageNumber.value());
-        cout << "KEY:: " << key << "  MEDDIATORS:  " << SearchData.first->nextSibling << endl;
+        // cout << "KEY:: " << key << "  MEDDIATORS:  " << SearchData.first->nextSibling << endl;
 
         // cout<<"key : "<<key<<data.pageNumber.value()<<data.blockNumber.value()<<endl;
         optional<string> foundValue = readValue(data.pageNumber.value(), data.blockNumber.value());

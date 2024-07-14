@@ -4,125 +4,58 @@
 #include <string>
 #include <thread>  // For std::this_thread::sleep_for
 
+
 #include "storage/database.cpp"
 using namespace std;
 
-// Test functions
-// void testInsertAndSearch(Database* store) {
+void testInsertAndSearch(Table* table) {
+    table->Insert({"key1", "1", "1000", "John"});
+    table->Insert({"key2", "2", "2000", "Jane"});
+    table->Insert({"key3", "3", "3000", "Jim"});
+    table->Insert({"key4", "4", "4000", "Jack"});
 
-//     store->insert("key1", "value1");
-//     store->insert("key3", "value3");
-//     store->insert("key2", "value2");
-//     store->insert("key4", "value4");
-//     store->insert("key0", "value0");
-//     store->insert("key7", "value7");
-//     store->insert("key9", "value9");
-//     store->insert("key8", "value8");
+    assert(table->Search("key1") == "key1,1,1000,John");
+    assert(table->Search("key2") == "key2,2,2000,Jane");
+    assert(table->Search("key3") == "key3,3,3000,Jim");
+    assert(table->Search("key4") == "key4,4,4000,Jack");
 
-//     assert(store->search("key1") == "value1");
-//     assert(store->search("key2") == "value2");
-//     assert(store->search("key3") == "value3");
-//     assert(store->search("key4") == "value4");
-
-//     cout << "testInsertAndSearch passed!" << endl;
-// }
-
-// void testDuplicateKeys(Database* store) {
-//     store->insert("key1", "value1");
-//     store->insert("key1", "value2");
-
-//     assert(store->search("key1") == "value2"); // Assuming the current implementation does not handle duplicates and keeps the first value
-
-//     cout << "testDuplicateKeys passed!" << endl;
-// }
-
-void testTreeSplitting(Table* table) {
-    // cout
-    // for (int i =500 ; i <= 500000; ++i) {
-    //     store->insert("key" + to_string(i), "value" + to_string(i));
-
-    // }
-    for (int i = 1; i <= 18; ++i) {
-        this_thread::sleep_for(chrono::milliseconds(100));
-        // cout<<"Brother "<<i<<endl;
-        table->Insert({to_string(i), to_string(i),to_string(8.78),string("anurag raut")});
-    }
-    cout << "INSERTION DONE" << endl;
-
-    table->Print();
-   
-
-    // table->deleteValue(to_string(7));
-    // table->Update({to_string(1), string("VEGETARIANS")});
-    // table->deleteValue(to_string(6));
-    //     table->deleteValue(to_string(3));
-    //             table->deleteValue(to_string(9));
-    //             table->deleteValue(to_string(17));
-
-    //         table->deleteValue(to_string(1));
-
-    // table->Print();
-
-   table->RangeQuery(to_string(1),to_string(8));
-    // for (int i = 1; i <= 1; ++i) {
-    //     // cout<<"i "<<i<<endl;
-    //     cout << "FOR KEY: " << i << "  FOUND: " << table->Search(to_string(i)) << endl;
-    //     // assert(table->Search(to_string(i) ) ==
-    //     // to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i)+to_string(i));
-    // }
-
-    // assert(store->search("key100000") == "value100000");
-
-    // assert(store->search("key1000000") == "Key not found");
-
-    cout << "testTreeSplitting passed!" << endl;
+    cout << "testInsertAndSearch passed!" << endl;
 }
 
-// void testSearchNonExistentKeys(Database* store) {
-//     store->insert("key1", "value1");
-//     store->insert("key2", "value2");
+void testDelete(Table* table) {
+    // table->Insert({"key1", "1", "1000", "John"});
+    table->deleteValue("key1");
+    cout<<"answer "<<table->Search("key1")<<endl;
+    assert(table->Search("key1") == "KEY NOT FOUND");
+    
+    cout << "testDelete passed!" << endl;
+}
 
-//     assert(store->search("asdasd") == "Key not found");
+void testUpdate(Table* table) {
+        table->Insert({"key1", "1", "1000", "John"});
 
-//     cout << "testSearchNonExistentKeys passed!" << endl;
-// }
+    table->Update({"key1", "1", "80", "Johnny"});
+    
+    assert(table->Search("key1") == "key1,1,80,Johnny");
+    
+    cout << "testUpdate passed!" << endl;
+}
+
+void testSearchNonExistentKeys(Table* table) {
+    
+    assert(table->Search("non_existent_key") == "KEY NOT FOUND");
+    
+    cout << "testSearchNonExistentKeys passed!" << endl;
+}
 
 void test() {
     Database* database = new Database("test");
-    Table* table = database->CreateTable("test_table", {"int","int","float", "string"}, {"id","age","salatary", "name"},0);
-    // this_thread::sleep_for(chrono::milliseconds(1000));
-    // table->Insert({"1","anurag"});
-    // this_thread::sleep_for(chrono::milliseconds(1000));
-
-    // table->Insert({"2","jhf"});
-    // table->Insert({"3","DFsdfsadf"});
-    // table->Insert({"4","asfdsfd"});
-    // table->Insert({"5","asfdsfd"});
-    // table->Insert({"6","asdsfd"});
-    // table->Insert({"7","asfd"});
-    // table->Insert({"8","asfd"});
-    // table->Insert({"9","asfd"});
-    // table->Insert({"10","asfd"});
-    // table->Insert({"11","asfd"});
-    // table->Insert({"12","asfd"});
-    // table->Insert({"13","asfd"});
-    // table->Insert({"14","asfd"});
-    //     table->Insert({"15","asfd"});
-    // table->Insert({"16","asfd"});
-    // table->Insert({"17","asfd"});
-    // table->Insert({"18","asfd"});
-    // table->Insert({"19","asfd"});
-    // table->Insert({"20","asfd"});
-    // cout<<table->Search("5")<<endl;;
-
-    // table->Insert({"51","asfd"});
-
-    // table->Print();
-
-    // testInsertAndSearch(store);
-    // testDuplicateKeys(store);
-    testTreeSplitting(table);
-    // testSearchNonExistentKeys(store);
+    Table* table = database->CreateTable("test_table", {"string", "int", "float", "string"}, {"id", "age", "salary", "name"}, 0);
+    
+    testInsertAndSearch(table);
+    testDelete(table);
+    testUpdate(table);
+    testSearchNonExistentKeys(table);
 
     cout << "All tests passed!" << endl;
 }

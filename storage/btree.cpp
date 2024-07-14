@@ -1,4 +1,4 @@
-#include "../include/btree.hpp"
+#include "./include/btree.hpp"
 
 #include <math.h>
 
@@ -18,7 +18,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "../include/globals.hpp"
+#include "./include/globals.hpp"
 
 using namespace std;
 

@@ -1,11 +1,12 @@
-#include "../include/database.hpp"
+#include "./include/database.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include "../include/globals.hpp"
-#include "../storage/table.cpp"
+
+#include "./include/globals.hpp"
+#include "./table.cpp"
 
 using namespace std;
 
