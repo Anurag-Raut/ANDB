@@ -4,7 +4,6 @@
 #include "btree_tests.cpp"
 #include <filesystem>
 #include "storage/include/globals.hpp"
-#include "parser/interpreter.cpp"
 
 
 int main(){
@@ -18,10 +17,9 @@ int main(){
     //     }
     // }
     
-    // test();
+    test();
     // repl();
     
-    Interpreter interpreter;
     
 
 

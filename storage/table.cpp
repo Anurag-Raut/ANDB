@@ -457,8 +457,8 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
 
 void Table::Print() { btree->printTree(this->rootPageNumber); }
 
-void Table::RangeQuery(string key1, string key2) {
-    pair<BTreeNode*, optional<Block>> SearchResult1 = btree->search(key1);
+void Table::RangeQuery(string* key1, string *key2) {
+    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1)  ? btree->beg(): btree->search(*key1);
     BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
@@ -466,21 +466,32 @@ void Table::RangeQuery(string key1, string key2) {
         cout << "KEY NOT FOUND" << endl;
         return;
     }
+        if(currentNode==NULL){
+            cout<<"EMPTY";
+            return ;
+        }
     Block data = optData.value();
     string key = data.key;
     uint64_t pgNumber = data.pageNumber.value();
     uint16_t blNumber = data.blockNumber.value();
     int i = 0;
-    while (i < currentNode->blocks.size() && currentNode->blocks[i].key < key1) i++;
+  
+    while (key1 && i < currentNode->blocks.size() && currentNode->blocks[i].key < *key1) {
+        cout<<"HEMLUUUUUU"<<endl;
+        cout<<currentNode->blocks[i].key<<endl;
+        i++;
+        }
 
-    while (key <= key2) {
+    cout<<"asds"<<endl;
+    cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
+    while ((key2) ?(key <= *key2) :  (currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size())) ) {
         blNumber = currentNode->blocks[i].blockNumber.value();
         // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
         pgNumber = currentNode->blocks[i].pageNumber.value();
         optional<string> foundValue = readValue(pgNumber, blNumber);
         cout << "FOUND VALUE :" << foundValue.value() << endl;
 
-        if (key == key2) {
+        if (key2!=NULL &&  key == *key2) {
             return;
         }
         if ((i + 1) < currentNode->blocks.size()) {

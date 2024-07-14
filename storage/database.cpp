@@ -86,8 +86,17 @@ Table* Database::CreateTable(string table_name, vector<string> types, vector<str
     }
     *metadata_file << endl;
     metadata_file->flush();
-    tables.push_back(newTable);
+    tables[table_name]=(newTable);
     return newTable;
 }
 
 Database::~Database() { data_file->close(); }
+
+    
+
+Table* Database::GetTable(string table_name){
+
+    Table* table=this->tables[table_name];
+    return table;
+
+}

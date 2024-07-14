@@ -35,9 +35,13 @@ public:
     void printTree(uint64_t rootPageNumber);
     optional<Block> deleteNode(string key);
     BTreeNode* readPage(uint64_t pageNumber);
+    pair<BTreeNode*,optional<Block>> beg();
 
     // Other methods as needed
 };
+
+
+
 
 class BTreeNode {
 public:

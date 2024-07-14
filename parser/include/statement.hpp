@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "../../storage/include/database.hpp"
 
 using namespace std;
 class Statement {
@@ -10,6 +11,7 @@ class Statement {
     // virtual void parse() = 0;
 
     virtual void print() const = 0;
+    virtual void execute(Database* database) const =0;
     
 };
 
@@ -21,4 +23,7 @@ class SelectStatement : public Statement {
 
     SelectStatement(string table_name, vector<string> columns, string where_condition);
    void print()const override;
+
+    void execute(Database* database) const override;
+
 };

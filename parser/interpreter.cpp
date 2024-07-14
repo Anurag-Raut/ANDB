@@ -6,9 +6,9 @@
 #include "./include/statement.hpp"
 class Interpreter {
    public:
-    Interpreter() {
+    Interpreter(Database *db) {
 
-        string query = "SELECT anurag,raut from anuar";
+        string query = "SELECT anurag,raut from test_table";
         // cout<<"THE ROCK: "<<query<<endl;
         Tokenizer tokenizer(query);
         tokenizer.print();
@@ -19,6 +19,7 @@ class Interpreter {
         if(stmt){
             cout<<"LESS GO"<<endl;
             stmt->print();
+            stmt->execute(db);
 
         }
         else{

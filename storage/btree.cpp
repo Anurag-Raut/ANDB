@@ -367,6 +367,25 @@ pair<BTreeNode*,optional<Block>> Btree::search(string key) {
     return root->search(key, this);
 }
 
+pair<BTreeNode*,optional<Block>> Btree::beg() {
+    BTreeNode* node = this->readPage(0);
+    if(node==NULL){
+        return {NULL,nullopt};
+
+    }
+    while(!node->leafNode){
+        node=this->readPage(node->children[0]);
+        
+    }
+
+    Block begBlock =node->blocks[0];
+
+    return {node,begBlock};
+
+    
+    
+}
+
 void Btree::printTree(uint64_t rootPageNumber) {
     BTreeNode* root = this->readPage(rootPageNumber);
     // cout << "LYOO BHAI:" << root->blocks.size() << endl;

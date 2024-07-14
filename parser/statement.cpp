@@ -21,3 +21,10 @@ void SelectStatement::print() const {
         cout << "Where: " << where_condition << endl;
     }
 }
+
+void SelectStatement::execute(Database *db) const {
+    
+    Table* table=db->GetTable(table_name);
+    table->RangeQuery(NULL,NULL);
+}
+

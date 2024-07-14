@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <string>
+#include<unordered_map>
 #include<vector>
 #include "../include/table.hpp"
 
@@ -10,7 +11,7 @@ using namespace std;
 
 
 class Database {
-    vector<Table *> tables; 
+    unordered_map<string,Table *> tables; 
     string name;
 
    public:
@@ -21,6 +22,7 @@ class Database {
     Database(string database_name);
     ~Database();
     Table* CreateTable(string table_name,vector<string> types,vector<string> name0,int primary_key_indexs);
+    Table* GetTable(string table_name);
 
 
 };
