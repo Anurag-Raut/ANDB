@@ -7,10 +7,9 @@
 using namespace std;
 
 class Tokenizer {
-   private:
-    vector<Token> tokens;
 
    public:
+    vector<Token> tokens;
     Tokenizer(string query) {
         // cout<<"EMII::::"<<query<<endl;
         stringstream ss(query);
@@ -18,32 +17,32 @@ class Tokenizer {
         vector<Token> tokens;
         while (ss >> token) {
             if (token == "+") {
-                Token newToken("+", "", TokenType::OPERATOR);
+                Token newToken("+", TokenType::OPERATOR);
                 tokens.push_back(newToken);
             } else if (token == "-") {
-                Token newToken("-", "", TokenType::OPERATOR);
+                Token newToken("-",TokenType::OPERATOR);
                 tokens.push_back(newToken);
             } else if (token == "*") {
-                Token newToken("*", "", TokenType::OPERATOR);
+                Token newToken("*", TokenType::OPERATOR);
                 tokens.push_back(newToken);
             } else if (token == "/") {
-                Token newToken("/", "", TokenType::OPERATOR);
+                Token newToken("/", TokenType::OPERATOR);
                 tokens.push_back(newToken);
             } else if (isalpha(token[0])) {
                 if (keywordMap.find(token) != keywordMap.end()) {
-                    tokens.push_back(Token(token, token, keywordMap[token]));
+                    tokens.push_back(Token( token, keywordMap[token]));
                 } else {
-                    tokens.push_back(Token(token, token, TokenType::IDENTIFIER));
+                    tokens.push_back(Token(token, TokenType::IDENTIFIER));
                 }
 
             } else if (isdigit(token[0])) {
-                Token newToken(token, "", TokenType::LITERAL);
+                Token newToken( token, TokenType::LITERAL);
                 tokens.push_back(newToken);
             } else if (token[0] == '\'') {
-                tokens.push_back(Token(token, "", TokenType::LITERAL));
+                tokens.push_back(Token( token, TokenType::LITERAL));
             }
             else if (token[0] == '\"') {
-                tokens.push_back(Token(token, "", TokenType::LITERAL));
+                tokens.push_back(Token("", TokenType::LITERAL));
             }
         }
 
@@ -53,7 +52,7 @@ class Tokenizer {
     void print(){
         cout<<"TOKENS: "<<endl;
         for(auto token:tokens){
-            cout<<token.lexeme<<" "<<token.tokenType<<endl;
+            cout<<" "<<token.type<<endl;
         }
 
     }
