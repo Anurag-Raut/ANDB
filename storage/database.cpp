@@ -76,11 +76,11 @@ Table* Database::CreateTable(string table_name, vector<string> types, vector<str
     *metadata_file << " ";
 
     for (int i = 0; i < names.size(); i++) {
-        string type = types[i];
+        string name = names[i];
 
-        *metadata_file << type;
+        *metadata_file << name;
 
-        if (i != types.size() - 1) {
+        if (i != name.size() - 1) {
             *metadata_file << ",";
         }
     }

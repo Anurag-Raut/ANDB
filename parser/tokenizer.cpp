@@ -7,54 +7,86 @@
 using namespace std;
 
 class Tokenizer {
-
    public:
     vector<Token> tokens;
     Tokenizer(string query) {
-        // cout<<"EMII::::"<<query<<endl;
-        stringstream ss(query);
-        string token;
-        vector<Token> tokens;
-        while (ss >> token) {
-            if (token == "+") {
-                Token newToken("+", TokenType::OPERATOR);
-                tokens.push_back(newToken);
-            } else if (token == "-") {
-                Token newToken("-",TokenType::OPERATOR);
-                tokens.push_back(newToken);
-            } else if (token == "*") {
-                Token newToken("*", TokenType::OPERATOR);
-                tokens.push_back(newToken);
-            } else if (token == "/") {
-                Token newToken("/", TokenType::OPERATOR);
-                tokens.push_back(newToken);
-            } else if (isalpha(token[0])) {
+        cout<<"EMII::::"<<query.size()<<endl;
+
+        int i = 0;
+        while (i < query.size()) {
+            // cout<<i<<endl;
+            if (isspace(query[i])) {
+                // Skip whitespace
+                ++i;
+                continue;
+            }
+
+            if (query[i] == '+' || query[i] == '-' || query[i] == '*' || query[i] == '/') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::OPERATOR));
+                ++i;
+            }
+            else if(query[i]==','){
+                    tokens.push_back(Token(string(1,query[i]), TokenType::COMMA));
+                    ++i;
+            }
+             else if (isalpha(query[i])) {
+                string token;
+                while (i < query.size() && (isalpha(query[i]) || isdigit(query[i]) || query[i] == '_')) {
+                    token += query[i];
+                    ++i;
+                }
                 if (keywordMap.find(token) != keywordMap.end()) {
-                    tokens.push_back(Token( token, keywordMap[token]));
+                    cout<<"KEYWORD: "<<token<<endl;
+                    tokens.push_back(Token(token, keywordMap[token]));
                 } else {
+                    cout<<"IDENTIDEr: "<<token<<endl;
                     tokens.push_back(Token(token, TokenType::IDENTIFIER));
                 }
-
-            } else if (isdigit(token[0])) {
-                Token newToken( token, TokenType::LITERAL);
-                tokens.push_back(newToken);
-            } else if (token[0] == '\'') {
-                tokens.push_back(Token( token, TokenType::LITERAL));
-            }
-            else if (token[0] == '\"') {
-                tokens.push_back(Token("", TokenType::LITERAL));
+            } else if (isdigit(query[i])) {
+                string token;
+                while (i < query.size() && isdigit(query[i])) {
+                    token += query[i];
+                    ++i;
+                }
+                tokens.push_back(Token(token, TokenType::LITERAL));
+            } else if (query[i] == '\'') {
+                string token;
+                token += query[i];
+                ++i;
+                while (i < query.size() && query[i] != '\'') {
+                    token += query[i];
+                    ++i;
+                }
+                if (i < query.size()) {
+                    token += query[i];
+                    ++i;
+                }
+                tokens.push_back(Token(token, TokenType::LITERAL));
+            } else if (query[i] == '\"') {
+                string token;
+                token += query[i];
+                ++i;
+                while (i < query.size() && query[i] != '\"') {
+                    token += query[i];
+                    ++i;
+                }
+                if (i < query.size()) {
+                    token += query[i];
+                    ++i;
+                }
+                tokens.push_back(Token(token, TokenType::LITERAL));
+            } else {
+                // tokens.push_back(Token(string(1, query[i]), TokenType::UNKNOWN));
+                ++i;
             }
         }
-
-        this->tokens=tokens;
     }
 
-    void print(){
-        cout<<"TOKENS: "<<endl;
-        for(auto token:tokens){
-            cout<<" "<<token.type<<endl;
+    void print() {
+        cout << "TOKENS: " << endl;
+        for (auto token : tokens) {
+            cout << " " << token.value << endl;
         }
-
     }
 
     vector<Token> getTokens() const { return tokens; }

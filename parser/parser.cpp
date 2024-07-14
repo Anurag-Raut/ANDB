@@ -1,14 +1,15 @@
 #include <iostream>
+#include <memory>  // for std::unique_ptr
+#include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <optional>
-#include <memory> // for std::unique_ptr
 
-
-#include "./statement.cpp"
 #include "./include/token.hpp"
+#include "./statement.cpp"
 
 using namespace std;
+
 class Parser {
    public:
     size_t currentTokenIndex = 0;
@@ -22,7 +23,7 @@ class Parser {
             if (token.type == TokenType::KEYWORD) {
                 if (token.value == "SELECT") {
                     return parseSelectStatement();
-                } 
+                }
                 // else if (token.value == "INSERT") {
                 //     return &parseInsertStatement();
                 // } else if (token.value == "UPDATE") {
@@ -35,7 +36,7 @@ class Parser {
                 //     return parseDropStatement();
                 // } else if (token.value == "ALTER") {
                 //     return parseAlterStatement();
-                // } 
+                // }
                 else {
                     std::cout << "Syntax error: Unexpected keyword '" << token.value << "'\n";
                     return nullptr;
@@ -78,6 +79,7 @@ class Parser {
         consume(TokenType::IDENTIFIER, "EXPECTED A IDENTIFIER");
         while (match({TokenType::COMMA})) {
             consume(TokenType::COMMA, "EXpected comma");
+            columns.push_back(tokens[currentTokenIndex].value);
             consume({TokenType::IDENTIFIER}, "Expected a identifier");
         }
         if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "from") {
@@ -89,11 +91,7 @@ class Parser {
             // tokens[currentTokenIndex].value
             __throw_runtime_error("ERROR EXPECTED from ");
         }
-            SelectStatement statement(table_name, columns, where_condition);
-
-
-    
-        
+        SelectStatement statement(table_name, columns, where_condition);
 
         return make_unique<SelectStatement>(statement);
 

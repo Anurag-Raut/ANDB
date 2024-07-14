@@ -8,7 +8,7 @@ class Interpreter {
    public:
     Interpreter(Database *db) {
 
-        string query = "SELECT anurag,raut from test_table";
+        string query = "SELECT id,age from test_table";
         // cout<<"THE ROCK: "<<query<<endl;
         Tokenizer tokenizer(query);
         tokenizer.print();
@@ -17,8 +17,8 @@ class Interpreter {
         unique_ptr<Statement> stmt=parser.parse();
 
         if(stmt){
-            cout<<"LESS GO"<<endl;
             stmt->print();
+            // cout<<"LESS GO"<<endl;
             stmt->execute(db);
 
         }

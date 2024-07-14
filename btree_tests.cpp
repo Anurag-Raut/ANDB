@@ -58,6 +58,7 @@ void test() {
     // testDelete(table);
     // testUpdate(table);
     // testSearchNonExistentKeys(table);
+    table->Print();
         Interpreter interpreter(database);
 
 

@@ -34,7 +34,8 @@ class Table {
     void Insert(vector<string> args);
     void Print();
     void Update(vector<string> args);
-    void RangeQuery(string* key1,string* key2);
+    vector<vector<string>> RangeQuery(string* key1,string* key2,vector<Column> types);
+    vector<string> Deconstruct(string row,vector<Column> types);
     string Search(string key);
     Block writeData(string key, string value);
     optional<string> readValue(uint64_t pageNumber, uint16_t blockNumber);

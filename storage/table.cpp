@@ -49,7 +49,8 @@ Table::Table(string table_name, vector<string> types, vector<string> names, stri
     }
 
     for (size_t i = 0; i < types.size(); ++i) {
-        columns.push_back({names[i], types[i]});
+        this->columns.push_back({names[i], types[i]});
+        // cout<<"column: "<<columns[i].name<<" "<<columns[i].type<<endl;
     }
     std::filesystem::path tableDir = BASE_DIRECTORY + "/" + database_name + "/" + table_name;
     if (!std::filesystem::exists(tableDir)) {
@@ -457,46 +458,73 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
 
 void Table::Print() { btree->printTree(this->rootPageNumber); }
 
-void Table::RangeQuery(string* key1, string *key2) {
+vector<string> Table::Deconstruct(string row,vector<Column> types){
+    unordered_map<string,string> rowData;
+    string column_data;
+
+    vector<string > rowValues=splitString(row,',');
+    for(int j=0;j<columns.size();j++){
+        // cout<<"name: "<<columns[j].name<<" VALue: "<<rowValues[j]<<endl;
+        rowData[columns[j].name]=rowValues[j];
+      
+    }
+    vector<string> data;
+    // cout<<"DELUSTIONAL: "<<types.size()<<endl;
+    for(int i=0;i<types.size();i++){
+        Column type = types[i];
+        data.push_back(rowData[type.name]);
+    }
+
+    return data;
+
+}
+
+vector<vector<string>> Table::RangeQuery(string* key1, string *key2,vector<Column> types) {
+    vector<vector<string>> rows;
     pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1)  ? btree->beg(): btree->search(*key1);
     BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
         cout << "KEY NOT FOUND" << endl;
-        return;
+        return rows;
     }
         if(currentNode==NULL){
             cout<<"EMPTY";
-            return ;
+            return rows ;
         }
     Block data = optData.value();
     string key = data.key;
     uint64_t pgNumber = data.pageNumber.value();
     uint16_t blNumber = data.blockNumber.value();
     int i = 0;
-  
+    // cout<<"hello"<<endl;
     while (key1 && i < currentNode->blocks.size() && currentNode->blocks[i].key < *key1) {
-        cout<<"HEMLUUUUUU"<<endl;
-        cout<<currentNode->blocks[i].key<<endl;
+  
         i++;
         }
 
-    cout<<"asds"<<endl;
-    cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
+    // cout<<"asdasdbas d  asd"<<endl;
+    // cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
     while ((key2) ?(key <= *key2) :  (currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size())) ) {
         blNumber = currentNode->blocks[i].blockNumber.value();
         // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
         pgNumber = currentNode->blocks[i].pageNumber.value();
         optional<string> foundValue = readValue(pgNumber, blNumber);
-        cout << "FOUND VALUE :" << foundValue.value() << endl;
-
+        // cout << "FOUND VALUE :" << foundValue.value() << endl;
+        vector<string> rowData=this->Deconstruct(foundValue.value(),types);
+        // cout<<"ROW DATA:"<<rowData[0]<<endl;
+        rows.push_back(rowData);
+        // cout<<"HELLO"<<endl;
         if (key2!=NULL &&  key == *key2) {
-            return;
+            return rows ;
         }
         if ((i + 1) < currentNode->blocks.size()) {
             i = i + 1;
         } else {
+            if(currentNode->nextSibling==-1){
+                return rows;
+            }
             // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
             BTreeNode* nextNode = btree->readPage(currentNode->nextSibling);
             // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
@@ -506,6 +534,8 @@ void Table::RangeQuery(string* key1, string *key2) {
         }
         key = currentNode->blocks[i].key;
     }
+
+    return rows;
 }
 
 string Table::Search(string key) {
