@@ -290,13 +290,13 @@ void Btree::insert(Block newData, string value) {
     // cout << "INDEX AT TOP: " << index << "ROOT SIZE: " << root->size << endl;
 }
 
-optional<Block> Btree::deleteNode(string key) {
+vector<Block> Btree::deleteNode(string key) {
     vector<pair<BTreeNode*, int>> parents;
 
     BTreeNode* root = this->readPage(0);
     if (root == NULL) {
         cout << "TABLE EMPTY" << endl;
-        return nullopt;
+        return {};
     } else {
         return root->deleteHelper(key, this, parents).second;
     }
@@ -311,15 +311,17 @@ void removeBlocksAtIndex(BTreeNode* node, int index) {
     }
     node->blocks.pop_back();
 }
-
-pair<optional<Block>, optional<Block>> BTreeNode::deleteHelper(string key, Btree* btree, vector<pair<BTreeNode*, int>> parents) {
+// first block is to pass on minimum to top node 
+//second is the actuall deleted block
+pair<optional<Block>, vector<Block>> BTreeNode::deleteHelper(string key, Btree* btree, vector<pair<BTreeNode*, int>> parents) {
     if (this->leafNode) {
         int j = 0;
         while (j < blocks.size() && key > blocks[j].key) {
             j++;
         }
+        pair<optional<Block>, vector<Block>> result = make_pair(nullopt, vector<Block>());
         // cout << "KEY: " << key << " FUCKING J: " << j << endl;
-        if (j < blocks.size() && blocks[j].key == key) {
+        while (j < blocks.size() && blocks[j].key == key) {
             // cout << "HHHAHHSH " << blocks[j].blockNumber.value() << endl;
             Block deletedBlock = blocks[j];
             removeBlocksAtIndex(this, j);
@@ -328,11 +330,13 @@ pair<optional<Block>, optional<Block>> BTreeNode::deleteHelper(string key, Btree
             // cout<<"PAERNTTE: "<<parents.back().first->blocks.size()<<endl;
             updateFlush(this, btree);
             // cout<<"LEEEELLOOOOOn0"<<blocks[0].key<<endl;
-            return make_pair(optional<Block>(blocks[0]), optional<Block>(deletedBlock));
-        } else {
-            // cout << "NO SUCH RECORD" << endl;
-            return {nullopt, nullopt};
-        }
+            result.first=blocks[0];
+            result.second.push_back(deletedBlock);
+        } 
+
+        return result;
+        
+
 
     } else {
         int j = 0;
@@ -344,7 +348,7 @@ pair<optional<Block>, optional<Block>> BTreeNode::deleteHelper(string key, Btree
 
         BTreeNode* childrenNode = btree->readPage(this->children[j]);
         parents.push_back({this, j});
-        pair<optional<Block>, optional<Block>> data = childrenNode->deleteHelper(key, btree, parents);
+        pair<optional<Block>, vector<Block>> data = childrenNode->deleteHelper(key, btree, parents);
         optional<Block> minFrombottom = data.first;
         // cout<<"UNC=K"<<minFrombottom.has_value()<<endl;
         if (j != 0 && minFrombottom.has_value()) {

@@ -33,7 +33,7 @@ public:
     void insert(Block data, string value);
     pair<BTreeNode*,optional<Block>>  search(string key);
     void printTree(uint64_t rootPageNumber);
-    optional<Block> deleteNode(string key);
+    vector<Block> deleteNode(string key);
     BTreeNode* readPage(uint64_t pageNumber);
     pair<BTreeNode*,optional<Block>> beg();
 
@@ -61,5 +61,5 @@ public:
     void balance(Btree* btree, vector<pair<BTreeNode*, int>>& parents);
     void insertAtIndex(int index, Block block);
 
-    pair<optional<Block>, optional<Block>> deleteHelper(string key, Btree* btree, vector<pair<BTreeNode*, int>> parents);
+    pair<optional<Block>, vector<Block>> deleteHelper(string key, Btree* btree, vector<pair<BTreeNode*, int>> parents);
 };

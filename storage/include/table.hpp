@@ -39,5 +39,5 @@ class Table {
     string Search(string key);
     Block writeData(string key, string value);
     optional<string> readValue(uint64_t pageNumber, uint16_t blockNumber);
-    void deleteValue(string key);
+    void Delete(string key);
 };

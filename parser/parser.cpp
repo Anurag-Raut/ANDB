@@ -9,6 +9,22 @@
 #include "./statement.cpp"
 
 using namespace std;
+enum Opeartor {
+    PLUS,
+    MINUS,
+    MULTIPLY,
+
+};
+
+struct Data {
+    string value;
+    bool isIdenifier;
+};
+struct Condition {
+    Opeartor op;
+    Data data1;
+    Data data2;
+};
 
 class Parser {
    public:
@@ -91,6 +107,11 @@ class Parser {
             // tokens[currentTokenIndex].value
             __throw_runtime_error("ERROR EXPECTED from ");
         }
+
+        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "where") {
+            consume(TokenType::KEYWORD, "EXPECTE kEY WORD WHERE");
+            parseExpression();
+        }
         SelectStatement statement(table_name, columns, where_condition);
 
         return make_unique<SelectStatement>(statement);
@@ -98,6 +119,14 @@ class Parser {
         // if(match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value=="where"){
 
         // }
+    }
+
+    void parseExpression() { return equality(); }
+
+    void equality() {
+        
+
+
     }
     // optional<Statement> parseInsertStatement() {}
     // optional<Statement> parseUpdateStatement() {}

@@ -26,7 +26,7 @@ void testInsertAndSearch(Table* table) {
 
 void testDelete(Table* table) {
     // table->Insert({"key1", "1", "1000", "John"});
-    table->deleteValue("key1");
+    table->Delete("key1");
     cout<<"answer "<<table->Search("key1")<<endl;
     assert(table->Search("key1") == "KEY NOT FOUND");
     

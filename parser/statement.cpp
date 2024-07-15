@@ -2,6 +2,8 @@
 #include "./include/statement.hpp"
 
 #include <iostream>
+
+#include "../cli-table-cpp/src/Table.cpp"
 using namespace std;
 
 SelectStatement::SelectStatement(string table_name, vector<string> columns, string where_condition) {
@@ -30,35 +32,38 @@ void SelectStatement::execute(Database* db) const {
     }
 
     for (auto column_name : columns) {
-        bool found=0;
+        bool found = 0;
         // cout<<"HEHE"<<endl;
         // cout<<column_name<<endl;
         for (auto column : table->columns) {
             // cout<<column.name<<endl;
             if (column.name == column_name) {
-                found=1;
+                found = 1;
                 requestedColums.push_back(column);
             }
         }
-        if(found==0){
-            cout<<"ERORR WHILE PARSING COLUMNS DATA";
+        if (found == 0) {
+            cout << "ERORR WHILE PARSING COLUMNS DATA";
             return;
         }
     }
 
-   
-    vector<vector<string>> data=table->RangeQuery(NULL, NULL,requestedColums);
+    // if(where_condition!=""){
+    //     table->indexes
+    // }
+
+    string key = "key2";
+    vector<vector<string>> data = table->RangeQuery(NULL, &key, requestedColums);
     // cout<<"YOOO: "<<data.size()<<endl;
-    for(auto row:data){
-        // cout<<"row second "<<row[1]<<endl;;
-        for(auto value:row){
-            cout<<value<<" ";
-        }
-        cout<<endl;
 
+    CliTable::Options opt;
+    // Contructing the table structure
+    CliTable::TableBody content;
+    content.push_back(columns);
 
-
+    for (auto row : data) {
+        content.push_back(row);
     }
-
-
+    CliTable::Table printTable(opt, content);
+    printTable.generate();
 }

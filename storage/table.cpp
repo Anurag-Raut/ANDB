@@ -562,17 +562,19 @@ string Table::Search(string key) {
 }
 
 void Table::Update(vector<string> args) {
-    deleteValue(args[0]);
+    Delete(args[0]);
     Insert(args);
 }
 
-void Table::deleteValue(string key) {
-    optional<Block> deletedBlock = btree->deleteNode(key);
+void Table::Delete(string key) {
+    vector<Block> deletedBlocks= btree->deleteNode(key);
 
-    if (deletedBlock.has_value()) {
-        Block delBlock = deletedBlock.value();
-        // cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() << endl;
+    if (deletedBlocks.size()>0) {
+        for(auto delBlock:deletedBlocks){
+
+                cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() << endl;
         deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file);
+        }
     } else {
         cout << "Record Not found" << endl;
     }

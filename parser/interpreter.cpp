@@ -8,7 +8,7 @@ class Interpreter {
    public:
     Interpreter(Database *db) {
 
-        string query = "SELECT id,age from test_table";
+        string query = "SELECT id,salary,age,name from test_table";
         // cout<<"THE ROCK: "<<query<<endl;
         Tokenizer tokenizer(query);
         tokenizer.print();
