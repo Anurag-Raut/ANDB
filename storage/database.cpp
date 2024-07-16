@@ -87,6 +87,7 @@ Table* Database::CreateTable(string table_name, vector<string> types, vector<str
     *metadata_file << endl;
     metadata_file->flush();
     tables[table_name]=(newTable);
+    cout<<"TABLE " +table_name + " CREATED"<<endl;
     return newTable;
 }
 

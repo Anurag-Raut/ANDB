@@ -10,23 +10,28 @@ class Interpreter {
    public:
     Interpreter(Database *db) {
 
-        string query = "SELECT id,salary,age,name from test_table where index=\"key2\"";
+        // string query = "SELECT id,salary,age,name from test_table where index=\"key2\"";
+        string query=R"(
+        CREATE TABLE anurag (name STRING , age INT, salary INT)
+        
+        INSERT
+        )";
         // cout<<"THE ROCK: "<<query<<endl;oo
         Tokenizer tokenizer(query);
         tokenizer.print();
         Parser parser(tokenizer.tokens);
         
-        unique_ptr<Statement> stmt=parser.parse();
+        vector<unique_ptr<Statement>> stmts=parser.parse();
 
-        if(stmt){
-            stmt->print();
+        if(stmts.size()>0){
+            // stmt->print();
             // cout<<"LESS GO"<<endl;
-            stmt->execute(db);
+            for(auto &stmt:stmts){
+                stmt->execute(db);
+            }
 
         }
-        else{
-            cout<<"BRTHR"<<endl;
-        }
+      
         
         
 

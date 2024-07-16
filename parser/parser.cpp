@@ -5,14 +5,11 @@
 #include <string>
 #include <vector>
 
-
+#include "./include/expr.hpp"
 #include "./include/token.hpp"
 #include "./statement.cpp"
-#include "./include/expr.hpp"
 
 using namespace std;
-
-
 
 class Parser {
    public:
@@ -21,35 +18,42 @@ class Parser {
 
     Parser(const std::vector<Token>& t) : tokens(t) {}
 
-    unique_ptr<Statement> parse() {
+    vector<unique_ptr<Statement>> parse() {
+
+        vector<unique_ptr<Statement>> stmts;
         while (currentTokenIndex < tokens.size()) {
             Token token = tokens[currentTokenIndex];
             if (token.type == TokenType::KEYWORD) {
                 if (token.value == "SELECT") {
-                    return parseSelectStatement();
+                    stmts.push_back(parseSelectStatement());
                 }
-                // else if (token.value == "INSERT") {
-                //     return &parseInsertStatement();
-                // } else if (token.value == "UPDATE") {
+                else if (token.value == "INSERT") {
+                    stmts.push_back(parseInsertStatement());
+                }
+                 else if (token.value == "UPDATE") {
                 //     return &parseUpdateStatement();
                 // } else if (token.value == "DELETE") {
                 //     return parseDeleteStatement();
-                // } else if (token.value == "CREATE") {
-                //     return parseCreateStatement();
-                // } else if (token.value == "DROP") {
+                // }
+                else if (token.value == "CREATE") {
+                     stmts.push_back(parseCreateStatement());
+                     cout<<"NIIIHHILLL: "<<currentTokenIndex<<"SIZE: "<<tokens.size()<<endl;
+                }
+                // else if (token.value == "DROP") {
                 //     return parseDropStatement();
                 // } else if (token.value == "ALTER") {
                 //     return parseAlterStatement();
                 // }
                 else {
                     std::cout << "Syntax error: Unexpected keyword '" << token.value << "'\n";
-                    return nullptr;
+                    return {};
                 }
             } else {
                 std::cout << "Syntax error: Unexpected token '" << token.value << "'\n";
-                return nullptr;
+                return {};
             }
         }
+        return stmts;
     }
 
    private:
@@ -123,7 +127,7 @@ class Parser {
         return left;
     }
 
-     shared_ptr<Expr> OR() {
+    shared_ptr<Expr> OR() {
         shared_ptr<Expr> left = comparison();
         if (match({TokenType::EQUAL_EQUAL, TokenType::BANG_EQUAL})) {
             Token op = tokens[currentTokenIndex];
@@ -138,7 +142,7 @@ class Parser {
 
     shared_ptr<Expr> comparison() {
         shared_ptr<Expr> left = primary();
-        if (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL,TokenType::EQUAL})) {
+        if (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL, TokenType::EQUAL})) {
             Token op = tokens[currentTokenIndex];
             currentTokenIndex++;
             // cout << "OPPP " << op.lexeme << endl;
@@ -198,7 +202,6 @@ class Parser {
         //     currentTokenIndex++;
         //     return std::make_shared<LiteralExpr>("false");
         // }
-        
 
         // if (match({TokenType::NUMBER, TokenType::STRING})) {
         //     // cout << "Number " << tokens[currentTokenIndex].lexeme << endl;
@@ -232,7 +235,52 @@ class Parser {
     // optional<Statement> parseInsertStatement() {}
     // optional<Statement> parseUpdateStatement() {}
     // optional<Statement> parseDeleteStatement() {}
-    // optional<Statement> parseCreateStatement() {}
+    unique_ptr<CreateStatement> parseCreateStatement() {
+        string table_name;
+        consume(TokenType::KEYWORD, "EXPECTED CREATE");
+        if (tokens[currentTokenIndex].value != "TABLE") {
+            throw runtime_error("EXPECTED KEYWORD TABLE");
+        }
+        consume(TokenType::KEYWORD, "EXPECTED TABLE");
+        table_name=tokens[currentTokenIndex].value;
+            consume(TokenType::IDENTIFIER, "EXPECTED table name");
+
+        consume(TokenType::LEFT_PAREN,"EXPecTED LEFT PARENTHESIS");
+                cout<<"BHAII"<<endl;
+        vector<Column> columns;
+
+        while(!match({TokenType::RIGHT_PAREN})){
+            string name,type;
+            name=tokens[currentTokenIndex].value;
+            consume(TokenType::IDENTIFIER,"EXPECTED A IDENTIFIER");   
+            type=tokens[currentTokenIndex].value;
+            consume(TokenType::KEYWORD,"EXPECTED A IDENTIFIER");   
+
+            transform(type.begin(), type.end(), type.begin(), ::tolower); 
+            columns.push_back(Column{name,type});
+
+            if(match({TokenType::COMMA})){
+                consume(TokenType::COMMA,"EXPECTED COMMA");
+            }
+            else {
+                consume(TokenType::RIGHT_PAREN,"EXPECTED RIGHT PARENTHESIS");
+                break;
+            }
+
+
+            
+
+
+        }
+        return make_unique<CreateStatement>(table_name,columns);
+
+
+    }
+
+        unique_ptr<InsertStatement> parseInsertStatement() {
+
+        }
+
     // optional<Statement> parseDropStatement() {}
     // optional<Statement> parseAlterStatement() {}
 };

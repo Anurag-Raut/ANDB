@@ -12,15 +12,7 @@ SelectStatement::SelectStatement(string table_name, vector<string> columns, shar
     this->columns = columns;
     this->where_condition = where_condition;
 }
-void SelectStatement::print() const {
-    cout << "SELECT statement:" << endl;
-    cout << "Table: " << table_name << endl;
-    cout << "Columns: ";
-    for (const auto& col : columns) {
-        cout << col << " ";
-    }
-    cout << endl;
-}
+
 
 void SelectStatement::execute(Database* db) const {
     Table* table = db->GetTable(table_name);
@@ -65,3 +57,45 @@ void SelectStatement::execute(Database* db) const {
     CliTable::Table printTable(opt, content);
     printTable.generate();
 }
+
+
+CreateStatement::CreateStatement(string table_name, vector<Column> columns){
+
+    this->table_name=table_name;
+    this->columns=columns;
+
+
+}
+
+void CreateStatement::execute(Database* database) const {
+    
+    vector<string > types,names;
+    for(auto column:columns){
+        types.push_back(column.type);
+        types.push_back(column.name);
+        
+    }
+    
+    database->CreateTable(table_name,types,names,0);
+
+}
+
+InsertStatement::InsertStatement(string table_name, vector<string> columns,vector<string> values){
+
+    this->table_name=table_name;
+    this->columns=columns;
+    this->values=values;
+
+}
+
+void InsertStatement::execute(Database* database) const {
+    
+    vector<string > columns,values;
+    
+  
+    Table* table=database->GetTable(table_name);
+    
+    table->Insert(values);
+
+}
+

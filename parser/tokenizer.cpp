@@ -40,6 +40,14 @@ class Tokenizer {
                 tokens.push_back(Token(string(1, query[i]), TokenType::EQUAL));
                 ++i;
             }
+            else if (query[i] == '(') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::LEFT_PAREN));
+                ++i;
+            }
+            else if (query[i] == ')') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::RIGHT_PAREN));
+                ++i;
+            }
              else if (isalpha(query[i])) {
                 string token;
                 while (i < query.size() && (isalpha(query[i]) || isdigit(query[i]) || query[i] == '_')) {
