@@ -54,11 +54,11 @@ void test() {
     Database* database = new Database("test");
     Table* table = database->CreateTable("test_table", {"string", "int", "float", "string"}, {"id", "age", "salary", "name"}, 0);
     
-    testInsertAndSearch(table);
+    // testInsertAndSearch(table);
     // testDelete(table);
     // testUpdate(table);
     // testSearchNonExistentKeys(table);
-    table->Print();
+    // table->Print();
         Interpreter interpreter(database);
 
 

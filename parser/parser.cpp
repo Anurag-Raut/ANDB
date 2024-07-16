@@ -19,25 +19,25 @@ class Parser {
     Parser(const std::vector<Token>& t) : tokens(t) {}
 
     vector<unique_ptr<Statement>> parse() {
-
         vector<unique_ptr<Statement>> stmts;
         while (currentTokenIndex < tokens.size()) {
             Token token = tokens[currentTokenIndex];
             if (token.type == TokenType::KEYWORD) {
                 if (token.value == "SELECT") {
                     stmts.push_back(parseSelectStatement());
-                }
-                else if (token.value == "INSERT") {
+                } else if (token.value == "INSERT") {
+             
                     stmts.push_back(parseInsertStatement());
+
                 }
-                 else if (token.value == "UPDATE") {
+                //  else if (token.value == "UPDATE") {
                 //     return &parseUpdateStatement();
-                // } else if (token.value == "DELETE") {
-                //     return parseDeleteStatement();
-                // }
+                // } 
+                else if (token.value == "DELETE") {
+                    return parseDeleteStatement();
+                }
                 else if (token.value == "CREATE") {
-                     stmts.push_back(parseCreateStatement());
-                     cout<<"NIIIHHILLL: "<<currentTokenIndex<<"SIZE: "<<tokens.size()<<endl;
+                    stmts.push_back(parseCreateStatement());
                 }
                 // else if (token.value == "DROP") {
                 //     return parseDropStatement();
@@ -90,7 +90,7 @@ class Parser {
             columns.push_back(tokens[currentTokenIndex].value);
             consume({TokenType::IDENTIFIER}, "Expected a identifier");
         }
-        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "from") {
+        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "FROM") {
             consume(TokenType::KEYWORD, "EXPECTE kEY WORD FROM");
             table_name = tokens[currentTokenIndex].value;
             consume(TokenType::IDENTIFIER, "EXPECTE a table name");
@@ -100,7 +100,7 @@ class Parser {
             __throw_runtime_error("ERROR EXPECTED from ");
         }
 
-        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "where") {
+        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "WHERE") {
             consume(TokenType::KEYWORD, "EXPECTE kEY WORD WHERE");
             where_condition = parseExpression();
         }
@@ -242,45 +242,104 @@ class Parser {
             throw runtime_error("EXPECTED KEYWORD TABLE");
         }
         consume(TokenType::KEYWORD, "EXPECTED TABLE");
-        table_name=tokens[currentTokenIndex].value;
-            consume(TokenType::IDENTIFIER, "EXPECTED table name");
+        table_name = tokens[currentTokenIndex].value;
+        consume(TokenType::IDENTIFIER, "EXPECTED table name");
 
-        consume(TokenType::LEFT_PAREN,"EXPecTED LEFT PARENTHESIS");
-                cout<<"BHAII"<<endl;
+        consume(TokenType::LEFT_PAREN, "EXPecTED LEFT PARENTHESIS");
+        cout << "BHAII" << endl;
         vector<Column> columns;
 
-        while(!match({TokenType::RIGHT_PAREN})){
-            string name,type;
-            name=tokens[currentTokenIndex].value;
-            consume(TokenType::IDENTIFIER,"EXPECTED A IDENTIFIER");   
-            type=tokens[currentTokenIndex].value;
-            consume(TokenType::KEYWORD,"EXPECTED A IDENTIFIER");   
+        while (!match({TokenType::RIGHT_PAREN})) {
+            string name, type;
+            name = tokens[currentTokenIndex].value;
+            consume(TokenType::IDENTIFIER, "EXPECTED A IDENTIFIER");
+            type = tokens[currentTokenIndex].value;
+            consume(TokenType::KEYWORD, "EXPECTED A IDENTIFIER");
 
-            transform(type.begin(), type.end(), type.begin(), ::tolower); 
-            columns.push_back(Column{name,type});
+            transform(type.begin(), type.end(), type.begin(), ::tolower);
+            columns.push_back(Column{name, type});
 
-            if(match({TokenType::COMMA})){
-                consume(TokenType::COMMA,"EXPECTED COMMA");
-            }
-            else {
-                consume(TokenType::RIGHT_PAREN,"EXPECTED RIGHT PARENTHESIS");
+            if (match({TokenType::COMMA})) {
+                consume(TokenType::COMMA, "EXPECTED COMMA");
+            } else {
+                consume(TokenType::RIGHT_PAREN, "EXPECTED RIGHT PARENTHESIS");
                 break;
             }
-
-
-            
-
-
         }
-        return make_unique<CreateStatement>(table_name,columns);
-
-
+        return make_unique<CreateStatement>(table_name, columns);
     }
 
-        unique_ptr<InsertStatement> parseInsertStatement() {
-
+    unique_ptr<InsertStatement> parseInsertStatement() {
+        string table_name;
+        consume(TokenType::KEYWORD, "EXPECTED INSERT");
+        if (tokens[currentTokenIndex].value != "INTO") {
+            throw runtime_error("EXPECTED KEYWORD TABLE");
         }
 
+        consume(TokenType::KEYWORD, "EXPECTED INTO");
+        table_name = tokens[currentTokenIndex].value;
+        consume(TokenType::IDENTIFIER, "EXPECTED TABLE NAME");
+
+        consume(TokenType::KEYWORD, "EXPECTED VALUES");
+
+        consume(TokenType::LEFT_PAREN, "EXPECTED LEFT PAREN");
+        vector<string> values;
+        while (!match({TokenType::RIGHT_PAREN})) {
+            string value;
+            cout << "ONUS" << endl;
+            value = tokens[currentTokenIndex].value;
+            consume(TokenType::LITERAL, "EXPECTED A LITERAL");
+
+            values.push_back(value);
+
+            if (match({TokenType::COMMA})) {
+                consume(TokenType::COMMA, "EXPECTED COMMA");
+            } else {
+                consume(TokenType::RIGHT_PAREN, "EXPECTED RIGHT PARENTHESIS");
+                break;
+            }
+        }
+
+        vector<string> columns;
+
+        return make_unique<InsertStatement>(table_name, columns, values);
+    }
+
+    unique_ptr<DeleteStatement> parseDeleteStatement() {
+        string table_name;
+        consume(TokenType::KEYWORD, "EXPECTED INSERT");
+        if (tokens[currentTokenIndex].value != "INTO") {
+            throw runtime_error("EXPECTED KEYWORD TABLE");
+        }
+
+        consume(TokenType::KEYWORD, "EXPECTED INTO");
+        table_name = tokens[currentTokenIndex].value;
+        consume(TokenType::IDENTIFIER, "EXPECTED TABLE NAME");
+
+        consume(TokenType::KEYWORD, "EXPECTED VALUES");
+
+        consume(TokenType::LEFT_PAREN, "EXPECTED LEFT PAREN");
+        vector<string> values;
+        while (!match({TokenType::RIGHT_PAREN})) {
+            string value;
+            cout << "ONUS" << endl;
+            value = tokens[currentTokenIndex].value;
+            consume(TokenType::LITERAL, "EXPECTED A LITERAL");
+
+            values.push_back(value);
+
+            if (match({TokenType::COMMA})) {
+                consume(TokenType::COMMA, "EXPECTED COMMA");
+            } else {
+                consume(TokenType::RIGHT_PAREN, "EXPECTED RIGHT PARENTHESIS");
+                break;
+            }
+        }
+
+        vector<string> columns;
+
+        return make_unique<InsertStatement>(table_name, columns, values);
+    }
     // optional<Statement> parseDropStatement() {}
     // optional<Statement> parseAlterStatement() {}
 };

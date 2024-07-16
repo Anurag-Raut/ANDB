@@ -1,10 +1,9 @@
 #pragma once
 #include "./include/statement.hpp"
+#include "../cli-table-cpp/src/Table.cpp"
 
 #include <iostream>
 #include <memory>
-
-#include "../cli-table-cpp/src/Table.cpp"
 using namespace std;
 
 SelectStatement::SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition) {
@@ -72,7 +71,7 @@ void CreateStatement::execute(Database* database) const {
     vector<string > types,names;
     for(auto column:columns){
         types.push_back(column.type);
-        types.push_back(column.name);
+        names.push_back(column.name);
         
     }
     
@@ -90,12 +89,29 @@ InsertStatement::InsertStatement(string table_name, vector<string> columns,vecto
 
 void InsertStatement::execute(Database* database) const {
     
-    vector<string > columns,values;
     
   
     Table* table=database->GetTable(table_name);
     
-    table->Insert(values);
+    table->Insert(this->values);
+
+}
+
+
+DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condition){
+
+    this->table_name=table_name;
+    this->where_condition=where_condition;
+
+}
+
+void InsertStatement::execute(Database* database) const {
+    
+    
+  
+    Table* table=database->GetTable(table_name);
+    
+    table->Delete(this->values);
 
 }
 

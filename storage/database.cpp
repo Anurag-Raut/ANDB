@@ -64,9 +64,10 @@ Database::Database(string name) {
 Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
     Table* newTable = new Table(table_name, types, names, this->name, data_file, page_file,primary_key_index);
     *metadata_file << table_name << " ";
+    cout<<"TYPE:"<<endl;
     for (int i = 0; i < types.size(); i++) {
         string type = types[i];
-
+        cout<<type<<" ";
         *metadata_file << type;
 
         if (i != types.size() - 1) {
@@ -74,9 +75,11 @@ Table* Database::CreateTable(string table_name, vector<string> types, vector<str
         }
     }
     *metadata_file << " ";
+    cout<<"VALUE :"<<endl;
 
     for (int i = 0; i < names.size(); i++) {
         string name = names[i];
+        cout<<name<<" ";
 
         *metadata_file << name;
 

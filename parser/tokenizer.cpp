@@ -91,6 +91,7 @@ class Tokenizer {
                 }
 
                 tokens.push_back(Token(token, TokenType::LITERAL));
+                i++;
             } else if (query[i] == '<') {
                 if (i + 1 < query.size() && query[i + 1] == '=') {
                     tokens.push_back(Token("<=", TokenType::LESS_EQUAL));

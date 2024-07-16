@@ -54,3 +54,14 @@ class InsertStatement : public Statement {
 
 };
 
+class DeleteStatement : public Statement {
+   public:
+    string table_name;
+    shared_ptr<Expr> where_condition;
+
+    DeleteStatement(string table_name,shared_ptr<Expr>  where_condition);
+    // void print() const override;
+
+    void execute(Database* database) const override;
+
+};

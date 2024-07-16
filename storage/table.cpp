@@ -105,6 +105,7 @@ bool parseArgument(const string& arg, const string& type) {
 
 void Table::Insert(vector<string> args) {
     if (args.size() != columns.size()) {
+        cout<<"COLUMNS SIZE: "<<columns.size()<<" ARgs Size: "<<args.size()<<endl;
         cout << "ERROR : args size not equal to column data";
         return;
     }

@@ -12,9 +12,13 @@ class Interpreter {
 
         // string query = "SELECT id,salary,age,name from test_table where index=\"key2\"";
         string query=R"(
-        CREATE TABLE anurag (name STRING , age INT, salary INT)
+        CREATE TABLE newtable (name STRING , age INT, salary INT)
         
-        INSERT
+        INSERT INTO newtable VALUES("key1" , 10 , 5000)
+        INSERT INTO newtable VALUES("key2" , 20 , 2000)
+        INSERT INTO newtable VALUES("key3" , 30 , 3000)
+        SELECT age,name FROM newtable WHERE name>"key2"
+
         )";
         // cout<<"THE ROCK: "<<query<<endl;oo
         Tokenizer tokenizer(query);
