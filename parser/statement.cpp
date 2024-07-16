@@ -2,11 +2,12 @@
 #include "./include/statement.hpp"
 
 #include <iostream>
+#include <memory>
 
 #include "../cli-table-cpp/src/Table.cpp"
 using namespace std;
 
-SelectStatement::SelectStatement(string table_name, vector<string> columns, string where_condition) {
+SelectStatement::SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition) {
     this->table_name = table_name;
     this->columns = columns;
     this->where_condition = where_condition;
@@ -19,9 +20,6 @@ void SelectStatement::print() const {
         cout << col << " ";
     }
     cout << endl;
-    if (!where_condition.empty()) {
-        cout << "Where: " << where_condition << endl;
-    }
 }
 
 void SelectStatement::execute(Database* db) const {
@@ -47,13 +45,13 @@ void SelectStatement::execute(Database* db) const {
             return;
         }
     }
+    vector<vector<string>> data;
+    if (where_condition) {
+        data = where_condition->execute(table, requestedColums);
+    } else {
+        data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
+    }
 
-    // if(where_condition!=""){
-    //     table->indexes
-    // }
-
-    string key = "key2";
-    vector<vector<string>> data = table->RangeQuery(NULL, &key, requestedColums);
     // cout<<"YOOO: "<<data.size()<<endl;
 
     CliTable::Options opt;

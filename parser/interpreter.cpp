@@ -2,14 +2,16 @@
 #include <optional>
 #include <memory>
 #include "./tokenizer.cpp"
+#include "./expr.cpp"
+
 #include "./parser.cpp"
 #include "./include/statement.hpp"
 class Interpreter {
    public:
     Interpreter(Database *db) {
 
-        string query = "SELECT id,salary,age,name from test_table";
-        // cout<<"THE ROCK: "<<query<<endl;
+        string query = "SELECT id,salary,age,name from test_table where index=\"key2\"";
+        // cout<<"THE ROCK: "<<query<<endl;oo
         Tokenizer tokenizer(query);
         tokenizer.print();
         Parser parser(tokenizer.tokens);

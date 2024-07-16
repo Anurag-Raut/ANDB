@@ -10,6 +10,33 @@ enum TokenType {
     OPERATOR,
     LITERAL,
     COMMA,
+    LEFT_PAREN,
+    RIGHT_PAREN,
+    LEFT_BRACE,
+    RIGHT_BRACE,
+    DOT,
+    SEMICOLON,
+    SLASH,
+    STAR,
+    BANG,
+    BANG_EQUAL,
+    EQUAL,
+    EQUAL_EQUAL,
+    GREATER,
+    GREATER_EQUAL,
+    LESS,
+    LESS_EQUAL,
+    STRING,
+    NUMBER,
+    AND,
+    CLASS,
+    ELSE,
+    FALSE,
+    TRUE,
+    PLUS,
+    MINUS,
+
+    OR,
 
 };
 extern unordered_map<string, TokenType> keywordMap = {
@@ -28,8 +55,8 @@ class Token {
    public:
     TokenType type;
     string value;
-
-    Token( string value, TokenType type) {
+    Token()=default;
+    Token(string value, TokenType type) {
         this->type = type;
         this->value = value;
     }

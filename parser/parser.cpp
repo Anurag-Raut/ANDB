@@ -5,26 +5,14 @@
 #include <string>
 #include <vector>
 
+
 #include "./include/token.hpp"
 #include "./statement.cpp"
+#include "./include/expr.hpp"
 
 using namespace std;
-enum Opeartor {
-    PLUS,
-    MINUS,
-    MULTIPLY,
 
-};
 
-struct Data {
-    string value;
-    bool isIdenifier;
-};
-struct Condition {
-    Opeartor op;
-    Data data1;
-    Data data2;
-};
 
 class Parser {
    public:
@@ -88,7 +76,7 @@ class Parser {
         string command;
         string table_name;
         vector<string> columns;
-        string where_condition;
+        shared_ptr<Expr> where_condition;
         command = tokens[currentTokenIndex].value;
         consume(TokenType::KEYWORD, "EXPecTED KEyWORD SELECT");
         columns.push_back(tokens[currentTokenIndex].value);
@@ -110,7 +98,7 @@ class Parser {
 
         if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "where") {
             consume(TokenType::KEYWORD, "EXPECTE kEY WORD WHERE");
-            parseExpression();
+            where_condition = parseExpression();
         }
         SelectStatement statement(table_name, columns, where_condition);
 
@@ -121,12 +109,125 @@ class Parser {
         // }
     }
 
-    void parseExpression() { return equality(); }
+    shared_ptr<Expr> parseExpression() { return AND(); }
+    shared_ptr<Expr> AND() {
+        shared_ptr<Expr> left = OR();
+        if (match({TokenType::EQUAL_EQUAL, TokenType::BANG_EQUAL})) {
+            Token op = tokens[currentTokenIndex];
+            currentTokenIndex++;
+            shared_ptr<Expr> right = AND();
 
-    void equality() {
+            return make_shared<ANDExpr>((left), (right));
+        }
+
+        return left;
+    }
+
+     shared_ptr<Expr> OR() {
+        shared_ptr<Expr> left = comparison();
+        if (match({TokenType::EQUAL_EQUAL, TokenType::BANG_EQUAL})) {
+            Token op = tokens[currentTokenIndex];
+            currentTokenIndex++;
+            shared_ptr<Expr> right = OR();
+
+            return make_shared<ORExpr>((left), (right));
+        }
+
+        return left;
+    }
+
+    shared_ptr<Expr> comparison() {
+        shared_ptr<Expr> left = primary();
+        if (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL,TokenType::EQUAL})) {
+            Token op = tokens[currentTokenIndex];
+            currentTokenIndex++;
+            // cout << "OPPP " << op.lexeme << endl;
+            shared_ptr<Expr> right = comparison();
+            return std::make_shared<BinaryExpr>((left), op, (right));
+        }
+
+        return left;
+    }
+
+    // shared_ptr<Expr> term() {
+    //     shared_ptr<Expr> left = factor();
+    //     if (match({TokenType::PLUS, TokenType::MINUS})) {
+    //         Token op = tokens[currentTokenIndex];
+    //         currentTokenIndex++;
+    //         shared_ptr<Expr> right = term();
+
+    //         return std::make_shared<BinaryExpr>((left), op, (right));
+    //     }
+
+    //     return left;
+    // }
+
+    // shared_ptr<Expr> factor() {
+    //     shared_ptr<Expr> left = unary();
+    //     if (match({TokenType::STAR, TokenType::SLASH})) {
+    //         Token op = tokens[currentTokenIndex];
+    //         currentTokenIndex++;
+    //         shared_ptr<Expr> right = factor();
+
+    //         return std::make_shared<BinaryExpr>((left), op, (right));
+    //     }
+
+    //     return left;
+    // }
+
+    // shared_ptr<Expr> unary() {
+    //     // Expr left = unary();
+    //     if (match({TokenType::BANG})) {
+    //         Token op = tokens[currentTokenIndex];
+    //         currentTokenIndex++;
+    //         shared_ptr<Expr> right = unary();
+
+    //         return std::make_shared<UnaryExpr>((op), (right));
+    //     }
+    //     return primary();
+    // }
+
+    shared_ptr<Expr> primary() {
+        // cout<<tokens[currentTokenIndex].lexeme<<endl;
+
+        if (match({TokenType::LITERAL})) {
+            currentTokenIndex++;
+            return std::make_shared<LiteralExpr>(tokens[currentTokenIndex - 1].value);
+        }
+        //    if (match({TokenType::IDENTIFIER})) {
+        //     currentTokenIndex++;
+        //     return std::make_shared<LiteralExpr>("false");
+        // }
         
 
+        // if (match({TokenType::NUMBER, TokenType::STRING})) {
+        //     // cout << "Number " << tokens[currentTokenIndex].lexeme << endl;
+        //     currentTokenIndex++;
+        //     return std::make_shared<LiteralExpr>(tokens[currentTokenIndex - 1].value);
+        // }
+        // if (match({TokenType::LEFT_PAREN})) {
+        //     shared_ptr<Expr> expr = parseExpression();
+        //     consume(RIGHT_PAREN, "Expect ')' after parseExpression.");
+        //     return std::make_shared<GroupingExpr>((expr));
+        // }
+        if (match({TokenType::IDENTIFIER})) {
+            // cout<<"hellp "<<tokens[currentTokenIndex].lexeme<<endl;
+            currentTokenIndex++;
+            string identifier = tokens[currentTokenIndex - 1].value;
+            // cout << "identier " << identifier << endl;
+            // cout << tokens[currentTokenIndex].lexeme << endl;
 
+            return make_shared<IdentifierExpr>((tokens[currentTokenIndex - 1].value));
+            // if(variables.find(tokens[currentTokenIndex].lexeme)!=variables.end()){
+            //   currentTokenIndex++;
+            //   cout<<"got hrerere"<<endl;
+            //   return std::make_shared<LiteralExpr>(variables[tokens[currentTokenIndex -
+            //   1].lexeme]);
+            // }
+            // else{
+            //   runtime_error("Undefined varaible");
+            // }
+        }
     }
     // optional<Statement> parseInsertStatement() {}
     // optional<Statement> parseUpdateStatement() {}

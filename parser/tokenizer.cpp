@@ -10,7 +10,7 @@ class Tokenizer {
    public:
     vector<Token> tokens;
     Tokenizer(string query) {
-        cout<<"EMII::::"<<query.size()<<endl;
+        cout << "EMII::::" << query.size() << endl;
 
         int i = 0;
         while (i < query.size()) {
@@ -21,13 +21,24 @@ class Tokenizer {
                 continue;
             }
 
-            if (query[i] == '+' || query[i] == '-' || query[i] == '*' || query[i] == '/') {
+            if (query[i] == '+') {
                 tokens.push_back(Token(string(1, query[i]), TokenType::OPERATOR));
                 ++i;
-            }
-            else if(query[i]==','){
-                    tokens.push_back(Token(string(1,query[i]), TokenType::COMMA));
-                    ++i;
+            } else if (query[i] == '-') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::OPERATOR));
+                ++i;
+            } else if (query[i] == '*') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::OPERATOR));
+                ++i;
+            } else if (query[i] == '/') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::OPERATOR));
+                ++i;
+            } else if (query[i] == ',') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::COMMA));
+                ++i;
+            }else if (query[i] == '=') {
+                tokens.push_back(Token(string(1, query[i]), TokenType::EQUAL));
+                ++i;
             }
              else if (isalpha(query[i])) {
                 string token;
@@ -36,10 +47,10 @@ class Tokenizer {
                     ++i;
                 }
                 if (keywordMap.find(token) != keywordMap.end()) {
-                    cout<<"KEYWORD: "<<token<<endl;
+                    cout << "KEYWORD: " << token << endl;
                     tokens.push_back(Token(token, keywordMap[token]));
                 } else {
-                    cout<<"IDENTIDEr: "<<token<<endl;
+                    cout << "IDENTIDEr: " << token << endl;
                     tokens.push_back(Token(token, TokenType::IDENTIFIER));
                 }
             } else if (isdigit(query[i])) {
@@ -64,20 +75,32 @@ class Tokenizer {
                 tokens.push_back(Token(token, TokenType::LITERAL));
             } else if (query[i] == '\"') {
                 string token;
-                token += query[i];
+                // token += query[i];
                 ++i;
                 while (i < query.size() && query[i] != '\"') {
                     token += query[i];
                     ++i;
                 }
-                if (i < query.size()) {
-                    token += query[i];
+
+                tokens.push_back(Token(token, TokenType::LITERAL));
+            } else if (query[i] == '<') {
+                if (i + 1 < query.size() && query[i + 1] == '=') {
+                    tokens.push_back(Token("<=", TokenType::LESS_EQUAL));
+                    i += 2;
+                } else {
+                    tokens.push_back(Token("<", TokenType::LESS));
                     ++i;
                 }
-                tokens.push_back(Token(token, TokenType::LITERAL));
+            } else if (query[i] == '>') {
+                if (i + 1 < query.size() && query[i + 1] == '=') {
+                    tokens.push_back(Token(">=", TokenType::GREATER_EQUAL));
+                    i += 2;
+                } else {
+                    tokens.push_back(Token(">", TokenType::GREATER));
+                    ++i;
+                }
             } else {
-                // tokens.push_back(Token(string(1, query[i]), TokenType::UNKNOWN));
-                ++i;
+                ++i;  // Skip unrecognized characters
             }
         }
     }

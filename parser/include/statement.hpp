@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "../../storage/include/database.hpp"
+#include "./expr.hpp"
 
 using namespace std;
 class Statement {
@@ -19,9 +20,9 @@ class SelectStatement : public Statement {
    public:
     string table_name;
     vector<string> columns;
-    string where_condition;
+    shared_ptr<Expr> where_condition;
 
-    SelectStatement(string table_name, vector<string> columns, string where_condition);
+    SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition);
    void print()const override;
 
     void execute(Database* database) const override;

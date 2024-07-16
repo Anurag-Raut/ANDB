@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
+#include "../storage/btree.cpp"
 #include "./include/database.hpp"
 #include "./include/globals.hpp"
-#include "../storage/btree.cpp"
 
 using namespace std;
 struct PageMap {
@@ -43,7 +43,8 @@ struct PageMap {
         offset += sizeof(this->noOfBlocksAvailable);
     }
 };
-Table::Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file,int primary_key_index) {
+Table::Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file,
+             int primary_key_index) {
     if (types.size() != names.size()) {
         return;
     }
@@ -85,7 +86,7 @@ bool parseArgument(const string& arg, const string& type) {
     } else if (type == "float") {
         try {
             stof(arg);
-                        return true;
+            return true;
 
         } catch (invalid_argument& e) {
             return false;
@@ -458,30 +459,28 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
 
 void Table::Print() { btree->printTree(this->rootPageNumber); }
 
-vector<string> Table::Deconstruct(string row,vector<Column> types){
-    unordered_map<string,string> rowData;
+vector<string> Table::Deconstruct(string row, vector<Column> types) {
+    unordered_map<string, string> rowData;
     string column_data;
 
-    vector<string > rowValues=splitString(row,',');
-    for(int j=0;j<columns.size();j++){
+    vector<string> rowValues = splitString(row, ',');
+    for (int j = 0; j < columns.size(); j++) {
         // cout<<"name: "<<columns[j].name<<" VALue: "<<rowValues[j]<<endl;
-        rowData[columns[j].name]=rowValues[j];
-      
+        rowData[columns[j].name] = rowValues[j];
     }
     vector<string> data;
     // cout<<"DELUSTIONAL: "<<types.size()<<endl;
-    for(int i=0;i<types.size();i++){
+    for (int i = 0; i < types.size(); i++) {
         Column type = types[i];
         data.push_back(rowData[type.name]);
     }
 
     return data;
-
 }
 
-vector<vector<string>> Table::RangeQuery(string* key1, string *key2,vector<Column> types) {
+vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true, bool includeKey2 = true) {
     vector<vector<string>> rows;
-    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1)  ? btree->beg(): btree->search(*key1);
+    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? btree->beg() : btree->search(*key1);
     BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
@@ -489,10 +488,10 @@ vector<vector<string>> Table::RangeQuery(string* key1, string *key2,vector<Colum
         cout << "KEY NOT FOUND" << endl;
         return rows;
     }
-        if(currentNode==NULL){
-            cout<<"EMPTY";
-            return rows ;
-        }
+    if (currentNode == NULL) {
+        cout << "EMPTY";
+        return rows;
+    }
     Block data = optData.value();
     string key = data.key;
     uint64_t pgNumber = data.pageNumber.value();
@@ -500,29 +499,38 @@ vector<vector<string>> Table::RangeQuery(string* key1, string *key2,vector<Colum
     int i = 0;
     // cout<<"hello"<<endl;
     while (key1 && i < currentNode->blocks.size() && currentNode->blocks[i].key < *key1) {
-  
         i++;
-        }
+    }
 
     // cout<<"asdasdbas d  asd"<<endl;
     // cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
-    while ((key2) ?(key <= *key2) :  (currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size())) ) {
+    while ((key2) ? (key <= *key2) : (currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
         blNumber = currentNode->blocks[i].blockNumber.value();
         // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
         pgNumber = currentNode->blocks[i].pageNumber.value();
         optional<string> foundValue = readValue(pgNumber, blNumber);
         // cout << "FOUND VALUE :" << foundValue.value() << endl;
-        vector<string> rowData=this->Deconstruct(foundValue.value(),types);
-        // cout<<"ROW DATA:"<<rowData[0]<<endl;
-        rows.push_back(rowData);
+        vector<string> rowData = this->Deconstruct(foundValue.value(), types);
+        cout << "ROW DATA:" << rowData[0] << endl;
+        if (key1 && key == *key1 && includeKey1) {
+            rows.push_back(rowData);
+        } else if (key2 && key == *key2 && includeKey2) {
+            rows.push_back(rowData);
+
+        } else if (key1 && *key1 != key) {
+            rows.push_back(rowData);
+
+        } else if (key2 && *key2 != key) {
+            rows.push_back(rowData);
+        }
         // cout<<"HELLO"<<endl;
-        if (key2!=NULL &&  key == *key2) {
-            return rows ;
+        if (key2 != NULL && key == *key2) {
+            return rows;
         }
         if ((i + 1) < currentNode->blocks.size()) {
             i = i + 1;
         } else {
-            if(currentNode->nextSibling==-1){
+            if (currentNode->nextSibling == -1) {
                 return rows;
             }
             // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
@@ -567,13 +575,12 @@ void Table::Update(vector<string> args) {
 }
 
 void Table::Delete(string key) {
-    vector<Block> deletedBlocks= btree->deleteNode(key);
+    vector<Block> deletedBlocks = btree->deleteNode(key);
 
-    if (deletedBlocks.size()>0) {
-        for(auto delBlock:deletedBlocks){
-
-                cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() << endl;
-        deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file);
+    if (deletedBlocks.size() > 0) {
+        for (auto delBlock : deletedBlocks) {
+            cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() << endl;
+            deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file);
         }
     } else {
         cout << "Record Not found" << endl;
