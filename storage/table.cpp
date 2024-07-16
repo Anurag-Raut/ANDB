@@ -524,6 +524,10 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
         } else if (key2 && *key2 != key) {
             rows.push_back(rowData);
         }
+        else if(!key1 || ! key2){
+            rows.push_back(rowData);
+
+        }
         // cout<<"HELLO"<<endl;
         if (key2 != NULL && key == *key2) {
             return rows;

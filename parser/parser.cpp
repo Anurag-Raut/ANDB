@@ -34,7 +34,7 @@ class Parser {
                 //     return &parseUpdateStatement();
                 // } 
                 else if (token.value == "DELETE") {
-                    return parseDeleteStatement();
+                    stmts.push_back(parseDeleteStatement());
                 }
                 else if (token.value == "CREATE") {
                     stmts.push_back(parseCreateStatement());
@@ -307,38 +307,24 @@ class Parser {
 
     unique_ptr<DeleteStatement> parseDeleteStatement() {
         string table_name;
-        consume(TokenType::KEYWORD, "EXPECTED INSERT");
-        if (tokens[currentTokenIndex].value != "INTO") {
+        shared_ptr<Expr> where_condition;
+        consume(TokenType::KEYWORD, "EXPECTED DELETE");
+        if (tokens[currentTokenIndex].value != "FROM") {
             throw runtime_error("EXPECTED KEYWORD TABLE");
         }
 
-        consume(TokenType::KEYWORD, "EXPECTED INTO");
+        consume(TokenType::KEYWORD, "EXPECTED FROM");
         table_name = tokens[currentTokenIndex].value;
         consume(TokenType::IDENTIFIER, "EXPECTED TABLE NAME");
 
-        consume(TokenType::KEYWORD, "EXPECTED VALUES");
-
-        consume(TokenType::LEFT_PAREN, "EXPECTED LEFT PAREN");
-        vector<string> values;
-        while (!match({TokenType::RIGHT_PAREN})) {
-            string value;
-            cout << "ONUS" << endl;
-            value = tokens[currentTokenIndex].value;
-            consume(TokenType::LITERAL, "EXPECTED A LITERAL");
-
-            values.push_back(value);
-
-            if (match({TokenType::COMMA})) {
-                consume(TokenType::COMMA, "EXPECTED COMMA");
-            } else {
-                consume(TokenType::RIGHT_PAREN, "EXPECTED RIGHT PARENTHESIS");
-                break;
-            }
+        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "WHERE") {
+            consume(TokenType::KEYWORD, "EXPECTE kEY WORD WHERE");
+            where_condition = parseExpression();
         }
 
-        vector<string> columns;
-
-        return make_unique<InsertStatement>(table_name, columns, values);
+     
+        
+        return make_unique<DeleteStatement>(table_name,where_condition);
     }
     // optional<Statement> parseDropStatement() {}
     // optional<Statement> parseAlterStatement() {}

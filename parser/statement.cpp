@@ -40,6 +40,7 @@ void SelectStatement::execute(Database* db) const {
     if (where_condition) {
         data = where_condition->execute(table, requestedColums);
     } else {
+        cout<<"YOOO"<<endl;
         data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
     }
 
@@ -105,13 +106,39 @@ DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condi
 
 }
 
-void InsertStatement::execute(Database* database) const {
+void DeleteStatement::execute(Database* database) const {
     
     
   
     Table* table=database->GetTable(table_name);
-    
-    table->Delete(this->values);
+    vector<vector<string>> data;
+    vector<Column> requestedColums=table->columns;
+
+    vector<string> columns;
+    for(auto column:requestedColums){
+        columns.push_back(column.name);
+    }
+    if (where_condition) {
+        data = where_condition->execute(table, requestedColums);
+    } else {
+        data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
+    }
+    // data = table->RangeQuery(NULL, NULL, {table->columns[table->primary_key_index]},true,true)
+    for(auto item:data){
+        table->Delete(item[table->primary_key_index]);
+    }
+
+    CliTable::Options opt;
+    // Contructing the table structure
+    CliTable::TableBody content;
+    content.push_back(columns);
+
+    for (auto row : data) {
+        content.push_back(row);
+    }
+    CliTable::Table printTable(opt, content);
+    printTable.generate();
+
 
 }
 

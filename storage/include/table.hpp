@@ -22,8 +22,8 @@ class Table {
    private:
     fstream* page_file;
     fstream* data_file;
-    int primary_key_index=0;
    public:
+    int primary_key_index=0;
     uint64_t rootPageNumber = 0;
     Btree* btree;
     vector<fstream*> indexes;

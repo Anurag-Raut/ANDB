@@ -17,7 +17,9 @@ class Interpreter {
         INSERT INTO newtable VALUES("key1" , 10 , 5000)
         INSERT INTO newtable VALUES("key2" , 20 , 2000)
         INSERT INTO newtable VALUES("key3" , 30 , 3000)
-        SELECT age,name FROM newtable WHERE name>"key2"
+        SELECT age,name FROM newtable
+        DELETE FROM newtable WHERE name="key2"
+        SELECT age,name FROM newtable
 
         )";
         // cout<<"THE ROCK: "<<query<<endl;oo
