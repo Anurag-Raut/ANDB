@@ -481,11 +481,17 @@ vector<string> Table::Deconstruct(string row, vector<Column> types) {
 
 vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true, bool includeKey2 = true) {
     vector<vector<string>> rows;
+    if(key1){
+    cout<<"CHALEGA: "<<*key1<<endl;
+
+    }
     pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? btree->beg() : btree->search(*key1);
     BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
+                cout<<"DRAMME"<<endl;
+
         cout << "KEY NOT FOUND" << endl;
         return rows;
     }
@@ -575,7 +581,8 @@ string Table::Search(string key) {
 }
 
 void Table::Update(vector<string> args) {
-    Delete(args[0]);
+    cout<<"INSANE: "<<args[primary_key_index]<<endl;
+    Delete(args[primary_key_index]);
     Insert(args);
 }
 

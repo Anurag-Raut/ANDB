@@ -26,17 +26,13 @@ class Parser {
                 if (token.value == "SELECT") {
                     stmts.push_back(parseSelectStatement());
                 } else if (token.value == "INSERT") {
-             
                     stmts.push_back(parseInsertStatement());
 
-                }
-                //  else if (token.value == "UPDATE") {
-                //     return &parseUpdateStatement();
-                // } 
-                else if (token.value == "DELETE") {
+                } else if (token.value == "UPDATE") {
+                    stmts.push_back(parseUpdateStatement());
+                } else if (token.value == "DELETE") {
                     stmts.push_back(parseDeleteStatement());
-                }
-                else if (token.value == "CREATE") {
+                } else if (token.value == "CREATE") {
                     stmts.push_back(parseCreateStatement());
                 }
                 // else if (token.value == "DROP") {
@@ -322,9 +318,48 @@ class Parser {
             where_condition = parseExpression();
         }
 
-     
-        
-        return make_unique<DeleteStatement>(table_name,where_condition);
+        return make_unique<DeleteStatement>(table_name, where_condition);
+    }
+
+    unique_ptr<UpdateStatement> parseUpdateStatement() {
+        string table_name;
+        shared_ptr<Expr> where_condition;
+        consume(TokenType::KEYWORD, "EXPECTED UPDATE");
+
+        table_name = tokens[currentTokenIndex].value;
+        consume(TokenType::IDENTIFIER, "EXPECTED TABLE NAME");
+
+        consume(TokenType::KEYWORD, "EXPECTED SET");
+        vector<pair<string, string>> newColumnValues;
+        string columnName;
+        string newColumnValue;
+        columnName = tokens[currentTokenIndex].value;
+        consume(TokenType::IDENTIFIER, "EXPECTED Column  NAME");
+        consume(TokenType::EQUAL, "EXPECTED = ");
+        newColumnValue = tokens[currentTokenIndex].value;
+
+        consume(TokenType::LITERAL, "EXPECTED Literal ");
+
+        newColumnValues.push_back({columnName,newColumnValue});
+
+        while (match({TokenType::COMMA})) {
+            consume({TokenType::COMMA}, "EXPECTED COMMA");
+            columnName = tokens[currentTokenIndex].value;
+            consume(TokenType::IDENTIFIER, "EXPECTED Column  NAME");
+            consume(TokenType::EQUAL, "EXPECTED = ");
+            newColumnValue = tokens[currentTokenIndex].value;
+
+            consume(TokenType::LITERAL, "EXPECTED Literal ");
+            newColumnValues.push_back({columnName,newColumnValue});
+
+        }
+
+        if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "WHERE") {
+            consume(TokenType::KEYWORD, "EXPECTE kEY WORD WHERE");
+            where_condition = parseExpression();
+        }
+
+        return make_unique<UpdateStatement>(table_name,newColumnValues, where_condition);
     }
     // optional<Statement> parseDropStatement() {}
     // optional<Statement> parseAlterStatement() {}

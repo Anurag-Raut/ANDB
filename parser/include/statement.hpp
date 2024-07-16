@@ -65,3 +65,17 @@ class DeleteStatement : public Statement {
     void execute(Database* database) const override;
 
 };
+
+
+class UpdateStatement : public Statement {
+   public:
+    string table_name;
+    vector<pair<string,string>> newColumnValues;
+    shared_ptr<Expr> where_condition;
+
+    UpdateStatement(string table_name,vector<pair<string,string>> newColumnValues,shared_ptr<Expr>  where_condition);
+    // void print() const override;
+
+    void execute(Database* database) const override;
+
+};

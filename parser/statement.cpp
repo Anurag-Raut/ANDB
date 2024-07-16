@@ -142,3 +142,68 @@ void DeleteStatement::execute(Database* database) const {
 
 }
 
+
+UpdateStatement::UpdateStatement(string table_name,vector<pair<string,string>> newColumnValues,shared_ptr<Expr>  where_condition){
+    this->table_name=table_name;
+    this->newColumnValues=newColumnValues;
+    this->where_condition=where_condition;
+
+
+}
+void UpdateStatement::execute(Database* database) const {
+
+        Table* table=database->GetTable(table_name);
+    vector<vector<string>> data;
+    cout<<"BRTER"<<endl;
+
+    vector<Column> requestedColums=table->columns;
+    cout<<"ABBBEEE"<<endl;
+    map<string,int> getIndex;
+    // map<string,string> getIndex;
+
+
+   
+    vector<string> columns;
+
+    for(int i=0;i<requestedColums.size();i++){
+        auto column=requestedColums[i];
+        columns.push_back(column.name);
+        getIndex[column.name]=i;
+    }
+
+    
+    if (where_condition) {
+        cout<<"SIT DOWN BHAII"<<endl;
+        data = where_condition->execute(table, requestedColums);
+    } else {
+        data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
+    }
+
+   
+    
+
+    for(auto item:data){
+        for(auto newColumnValue:newColumnValues){
+            string columnName=newColumnValue.first;
+            string newValue=newColumnValue.second;
+            item[getIndex[columnName]]=newValue;
+
+        }
+        table->Update(item);
+    }
+
+
+
+    CliTable::Options opt;
+    CliTable::TableBody content;
+    content.push_back(columns);
+
+    for (auto row : data) {
+        content.push_back(row);
+    }
+    CliTable::Table printTable(opt, content);
+    printTable.generate();
+
+
+}
+
