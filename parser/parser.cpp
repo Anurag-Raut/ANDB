@@ -242,7 +242,6 @@ class Parser {
         consume(TokenType::IDENTIFIER, "EXPECTED table name");
 
         consume(TokenType::LEFT_PAREN, "EXPecTED LEFT PARENTHESIS");
-        cout << "BHAII" << endl;
         vector<Column> columns;
 
         while (!match({TokenType::RIGHT_PAREN})) {
@@ -282,7 +281,7 @@ class Parser {
         vector<string> values;
         while (!match({TokenType::RIGHT_PAREN})) {
             string value;
-            cout << "ONUS" << endl;
+            // cout << "ONUS" << endl;
             value = tokens[currentTokenIndex].value;
             consume(TokenType::LITERAL, "EXPECTED A LITERAL");
 

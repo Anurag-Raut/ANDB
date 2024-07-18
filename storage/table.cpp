@@ -11,6 +11,7 @@
 #include "../storage/btree.cpp"
 #include "./include/database.hpp"
 #include "./include/globals.hpp"
+#include "./index.cpp"
 
 using namespace std;
 struct PageMap {
@@ -58,17 +59,17 @@ Table::Table(string table_name, vector<string> types, vector<string> names, stri
         std::filesystem::create_directories(tableDir);
     }
 
-    string primaryIndexFile = getIndexFilePath(database_name, table_name, "primary");
-    fstream* index_file = new fstream();
-    indexes.push_back(index_file);
+    Index* index = new Index(database_name, table_name, columns[primary_key_index].name);
+
+    indexes.push_back(index);
+
     // Debugging output
-    index_file->open(primaryIndexFile, ios::out | ios::trunc | ios::in);
+    this->table_name = table_name;
+    this->database_name = database_name;
 
     this->data_file = data_file;
     this->page_file = page_file;
     // Ensure directories exist
-
-    this->btree = new Btree(index_file);
 }
 bool parseArgument(const string& arg, const string& type) {
     if (type == "string") {
@@ -105,7 +106,7 @@ bool parseArgument(const string& arg, const string& type) {
 
 void Table::Insert(vector<string> args) {
     if (args.size() != columns.size()) {
-        cout<<"COLUMNS SIZE: "<<columns.size()<<" ARgs Size: "<<args.size()<<endl;
+        cout << "COLUMNS SIZE: " << columns.size() << " ARgs Size: " << args.size() << endl;
         cout << "ERROR : args size not equal to column data";
         return;
     }
@@ -133,7 +134,11 @@ void Table::Insert(vector<string> args) {
 
     Block newData = writeData(args[primary_key_index], joinedArgs);
     // cout<<"key: "<<newData.key<<"BLOCK: " <<newData.blockNumber.value()<<endl;
-    btree->insert(newData, args[1]);
+
+    for (auto index : indexes) {
+        cout<<"INSERTING: "<<args[1]<<endl;
+        index->btree->insert(newData, args[1]);
+    }
 }
 MetadataDataPage readMetadata(char buffer[PAGE_SIZE]) {
     MetadataDataPage metadata;
@@ -458,7 +463,13 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
     return value;
 }
 
-void Table::Print() { btree->printTree(this->rootPageNumber); }
+void Table::Print(string column_name) {
+    Index* index = this->getIndex(column_name);
+    if (!index) {
+        return;
+    }
+    index->btree->printTree(this->rootPageNumber);
+}
 
 vector<string> Table::Deconstruct(string row, vector<Column> types) {
     unordered_map<string, string> rowData;
@@ -479,18 +490,50 @@ vector<string> Table::Deconstruct(string row, vector<Column> types) {
     return data;
 }
 
-vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true, bool includeKey2 = true) {
-    vector<vector<string>> rows;
-    if(key1){
-    cout<<"CHALEGA: "<<*key1<<endl;
+Index* Table::getIndex(string column_name) {
+    Index* index;
 
+    if (column_name.empty()) {
+        column_name = columns[primary_key_index].name;
     }
-    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? btree->beg() : btree->search(*key1);
+    for (auto ind : indexes) {
+        if (ind->columnName == column_name) {
+            index = ind;
+            break;
+        }
+    }
+
+    if (!index) {
+        for (auto ind : indexes) {
+            if (ind->columnName == columns[primary_key_index].name) {
+                index = ind;
+                break;
+            }
+        }
+    }
+
+    if (!index) {
+        cout << "ERROR: index not found";
+        return index;
+    }
+
+    return index;
+}
+
+vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true, bool includeKey2 = true,
+                                         string column_name) {
+    vector<vector<string>> rows;
+    Index* index = this->getIndex(column_name);
+    if (!index) {
+        return rows;
+    }
+
+    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? index->btree->beg() : index->btree->search(*key1);
     BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
-                cout<<"DRAMME"<<endl;
+        cout << "DRAMME" << endl;
 
         cout << "KEY NOT FOUND" << endl;
         return rows;
@@ -518,7 +561,7 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
         optional<string> foundValue = readValue(pgNumber, blNumber);
         // cout << "FOUND VALUE :" << foundValue.value() << endl;
         vector<string> rowData = this->Deconstruct(foundValue.value(), types);
-        cout << "ROW DATA:" << rowData[0] << endl;
+        // cout << "ROW DATA:" << rowData[0] << endl;
         if (key1 && key == *key1 && includeKey1) {
             rows.push_back(rowData);
         } else if (key2 && key == *key2 && includeKey2) {
@@ -529,10 +572,8 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
 
         } else if (key2 && *key2 != key) {
             rows.push_back(rowData);
-        }
-        else if(!key1 || ! key2){
+        } else if (!key1 || !key2) {
             rows.push_back(rowData);
-
         }
         // cout<<"HELLO"<<endl;
         if (key2 != NULL && key == *key2) {
@@ -545,7 +586,7 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
                 return rows;
             }
             // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
-            BTreeNode* nextNode = btree->readPage(currentNode->nextSibling);
+            BTreeNode* nextNode = index->btree->readPage(currentNode->nextSibling);
             // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
             i = 0;
             // cout<<"AVVEE BHAIII :"<<nextNode->pageNumber<<endl;
@@ -557,8 +598,13 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
     return rows;
 }
 
-string Table::Search(string key) {
-    pair<BTreeNode*, optional<Block>> SearchData = btree->search(key);
+string Table::Search(string key, string column_name) {
+    Index* index = this->getIndex(column_name);
+    if (!index) {
+        return "";
+    }
+
+    pair<BTreeNode*, optional<Block>> SearchData = index->btree->search(key);
     optional<Block> optData = SearchData.second;
     // cout<<"KEY: "<<key<<" PAGE NUMBER: " << optData.value().pageNumber.value()<<" BLOCK NUMBER: "<<optData.value().blockNumber.value()<<endl;
     if (optData.has_value()) {
@@ -581,20 +627,87 @@ string Table::Search(string key) {
 }
 
 void Table::Update(vector<string> args) {
-    cout<<"INSANE: "<<args[primary_key_index]<<endl;
+    // cout<<"INSANE: "<<args[primary_key_index]<<endl;
     Delete(args[primary_key_index]);
     Insert(args);
 }
 
 void Table::Delete(string key) {
-    vector<Block> deletedBlocks = btree->deleteNode(key);
+    vector<Block> deletedBlocks;
+    for (auto index : indexes) {
+        deletedBlocks = index->btree->deleteNode(key);
+    }
 
     if (deletedBlocks.size() > 0) {
         for (auto delBlock : deletedBlocks) {
-            cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() << endl;
+            // cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() <<
+            // endl;
             deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file);
         }
     } else {
         cout << "Record Not found" << endl;
+    }
+}
+
+void Table::CreateIndex(string column_name) {
+    for (auto index : indexes) {
+        if (index->columnName == column_name) {
+            cout << "INDEX ALREADY EXISTS" << endl;
+            
+            return;
+        }
+    }
+    cout<<"EASSYYY ohh"<<endl;
+    Index* index = new Index(database_name, table_name, column_name);
+    indexes.push_back(index);
+    Index* primaryIndex = getIndex("");
+    cout<<primaryIndex->columnName<<endl;
+    // vector<vector<string>> rows=this->RangeQuery(NULL,NULL,columns);
+    pair<BTreeNode*, optional<Block>> SearchResult1 = primaryIndex->btree->beg();
+    BTreeNode* currentNode = SearchResult1.first;
+    optional<Block> optData = SearchResult1.second;
+
+    if (!optData.has_value()) {
+        cout << "DRAMME" << endl;
+
+        cout << "KEY NOT FOUND" << endl;
+        return ;
+    }
+    if (currentNode == NULL) {
+        cout << "EMPTY";
+        return ;
+    }
+    Block data = optData.value();
+    string key = data.key;
+    uint64_t pgNumber = data.pageNumber.value();
+    uint16_t blNumber = data.blockNumber.value();
+    int i = 0;
+    while ((currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
+        blNumber = currentNode->blocks[i].blockNumber.value();
+        cout<<"pageNumver: "<<pgNumber<<" BL NUMBER HEHEHE : "<<blNumber<<endl;
+        pgNumber = currentNode->blocks[i].pageNumber.value();
+        optional<string> foundValue = readValue(pgNumber, blNumber);
+        if (!foundValue.has_value()) {
+            cout << "ERROR VALUE NOT FOUND, corrupted";
+            return;
+        }
+        index->btree->insert(currentNode->blocks[i], foundValue.value());
+        // cout << "ROW DATA:" << rowData[0] << endl;
+
+        // cout<<"HELLO"<<endl;
+
+        if ((i + 1) < currentNode->blocks.size()) {
+            i = i + 1;
+        } else {
+            if (currentNode->nextSibling == -1) {
+                break;
+            }
+            // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
+            BTreeNode* nextNode = primaryIndex->btree->readPage(currentNode->nextSibling);
+            // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
+            i = 0;
+            // cout<<"AVVEE BHAIII :"<<nextNode->pageNumber<<endl;
+            currentNode = nextNode;
+        }
     }
 }

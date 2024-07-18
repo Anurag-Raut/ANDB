@@ -372,8 +372,10 @@ pair<BTreeNode*,optional<Block>> Btree::search(string key) {
 }
 
 pair<BTreeNode*,optional<Block>> Btree::beg() {
+
     BTreeNode* node = this->readPage(0);
     if(node==NULL){
+        cout<<"CHAL PAHHTU"<<endl;
         return {NULL,nullopt};
 
     }
@@ -383,6 +385,7 @@ pair<BTreeNode*,optional<Block>> Btree::beg() {
     }
 
     Block begBlock =node->blocks[0];
+    cout<<"BEGGGG "<<begBlock.key<<endl;
 
     return {node,begBlock};
 

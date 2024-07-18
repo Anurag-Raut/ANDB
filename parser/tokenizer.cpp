@@ -10,7 +10,7 @@ class Tokenizer {
    public:
     vector<Token> tokens;
     Tokenizer(string query) {
-        cout << "EMII::::" << query.size() << endl;
+        // cout << "EMII::::" << query.size() << endl;
 
         int i = 0;
         while (i < query.size()) {
@@ -55,10 +55,10 @@ class Tokenizer {
                     ++i;
                 }
                 if (keywordMap.find(token) != keywordMap.end()) {
-                    cout << "KEYWORD: " << token << endl;
+                    // cout << "KEYWORD: " << token << endl;
                     tokens.push_back(Token(token, keywordMap[token]));
                 } else {
-                    cout << "IDENTIDEr: " << token << endl;
+                    // cout << "IDENTIDEr: " << token << endl;
                     tokens.push_back(Token(token, TokenType::IDENTIFIER));
                 }
             } else if (isdigit(query[i])) {

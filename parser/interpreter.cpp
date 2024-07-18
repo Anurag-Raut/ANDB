@@ -26,7 +26,7 @@ class Interpreter {
         )";
         // cout<<"THE ROCK: "<<query<<endl;oo
         Tokenizer tokenizer(query);
-        tokenizer.print();
+        // tokenizer.print();
         Parser parser(tokenizer.tokens);
         
         vector<unique_ptr<Statement>> stmts=parser.parse();

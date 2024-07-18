@@ -40,7 +40,6 @@ void SelectStatement::execute(Database* db) const {
     if (where_condition) {
         data = where_condition->execute(table, requestedColums);
     } else {
-        cout<<"YOOO"<<endl;
         data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
     }
 
@@ -93,6 +92,11 @@ void InsertStatement::execute(Database* database) const {
     
   
     Table* table=database->GetTable(table_name);
+    cout<<"VALUEA"<<endl;
+    for(auto val:values){
+        cout<<val<<" ";
+    }
+    cout<<endl;
     
     table->Insert(this->values);
 
@@ -154,12 +158,9 @@ void UpdateStatement::execute(Database* database) const {
 
         Table* table=database->GetTable(table_name);
     vector<vector<string>> data;
-    cout<<"BRTER"<<endl;
 
     vector<Column> requestedColums=table->columns;
-    cout<<"ABBBEEE"<<endl;
     map<string,int> getIndex;
-    // map<string,string> getIndex;
 
 
    
@@ -173,7 +174,7 @@ void UpdateStatement::execute(Database* database) const {
 
     
     if (where_condition) {
-        cout<<"SIT DOWN BHAII"<<endl;
+        // cout<<"SIT DOWN BHAII"<<endl;
         data = where_condition->execute(table, requestedColums);
     } else {
         data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
