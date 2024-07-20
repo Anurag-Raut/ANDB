@@ -30,7 +30,7 @@ public:
     fstream* index_file;
     Btree(fstream* fp);
 
-    void insert(Block data, string value);
+    void insert(Block data);
     pair<BTreeNode*,optional<Block>>  search(string key);
     void printTree(uint64_t rootPageNumber);
     vector<Block> deleteNode(string key);

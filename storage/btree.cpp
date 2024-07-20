@@ -270,7 +270,7 @@ void updateFlush(BTreeNode* node, Btree* btree) {
     btree->index_file->flush();
 }
 
-void Btree::insert(Block newData, string value) {
+void Btree::insert(Block newData) {
     vector<pair<BTreeNode*, int>> parents;
     BTreeNode* root = this->readPage(0);
     if (root == NULL) {

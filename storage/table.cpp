@@ -137,7 +137,7 @@ void Table::Insert(vector<string> args) {
 
     for (auto index : indexes) {
         cout<<"INSERTING: "<<args[1]<<endl;
-        index->btree->insert(newData, args[1]);
+        index->btree->insert(newData);
     }
 }
 MetadataDataPage readMetadata(char buffer[PAGE_SIZE]) {
@@ -576,9 +576,7 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
             rows.push_back(rowData);
         }
         // cout<<"HELLO"<<endl;
-        if (key2 != NULL && key == *key2) {
-            return rows;
-        }
+      
         if ((i + 1) < currentNode->blocks.size()) {
             i = i + 1;
         } else {
@@ -691,7 +689,7 @@ void Table::CreateIndex(string column_name) {
             cout << "ERROR VALUE NOT FOUND, corrupted";
             return;
         }
-        index->btree->insert(currentNode->blocks[i], foundValue.value());
+        index->btree->insert(currentNode->blocks[i]);
         // cout << "ROW DATA:" << rowData[0] << endl;
 
         // cout<<"HELLO"<<endl;

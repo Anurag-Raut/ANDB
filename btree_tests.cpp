@@ -11,6 +11,15 @@ using namespace std;
 
 void testInsertAndSearch(Table* table) {
     table->Insert({"key1", "1", "1000", "John"});
+        table->Insert({"key1", "2", "3000", "2ohn"});
+        string key1="key1";
+        auto rows=table->RangeQuery(&key1,&key1,table->columns,true,true);
+        cout<<"Row data"<<endl;
+        for(auto row:rows){
+            cout<<row[0]<<" ";
+
+        }
+        cout<<endl;
     table->Insert({"key2", "2", "2000", "Jane"});
     table->Insert({"key3", "3", "3000", "Jim"});
     table->Insert({"key4", "4", "4000", "Jack"});
@@ -21,11 +30,21 @@ void testInsertAndSearch(Table* table) {
     assert(table->Search("key4", table->columns[table->primary_key_index].name) == "key4,4,4000,Jack");
 
 
-    table->CreateIndex("age");
 
     cout << "testInsertAndSearch passed!" << endl;
 }
+void testIndex(Table* table){
+    table->CreateIndex("age");
+    assert(table->Search("key1", "age") == "key1,1,1000,John");
+    table->Insert({"key5", "5", "5000", "Jimmy"});
+    table->Insert({"key6", "7", "7000", "joshua"});
+    assert(table->Search("key5", "age") == "key5,5,5000,Jimmy");
+    assert(table->Search("key6", "age") == "key6,7,7000,joshua");
 
+
+
+
+}
 void testDelete(Table* table) {
     table->Delete("key1");
     cout << "answer " << table->Search("key1", table->columns[table->primary_key_index].name) << endl;
@@ -54,6 +73,7 @@ void test() {
     Table* table = database->CreateTable("test_table", {"string", "int", "int", "string"}, {"id", "age", "salary", "name"}, 0);
 
     testInsertAndSearch(table);
+    testIndex(table);
     // testDelete(table);
     // testUpdate(table);
     // testSearchNonExistentKeys(table);
