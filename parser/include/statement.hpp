@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include "../../storage/include/database.hpp"
+#include "../../storage/include/transaction.hpp"
+
 #include "./expr.hpp"
 
 using namespace std;
@@ -12,7 +14,7 @@ class Statement {
     // virtual void parse() = 0;
 
     // virtual void print() const = 0;
-    virtual void execute(Database* database) const =0;
+    virtual void execute(Transaction* tx) const = 0;
     
 };
 
@@ -25,7 +27,7 @@ class SelectStatement : public Statement {
     SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition);
 //    void print()const override;
 
-    void execute(Database* database) const override;
+    void execute(Transaction* tx) const override;
 
 };
 
@@ -37,7 +39,7 @@ class CreateStatement : public Statement {
     CreateStatement(string table_name, vector<Column> columns);
     // void print() const override;
 
-    void execute(Database* database) const override;
+    void execute(Transaction* tx) const override;
 
 };
 
@@ -50,7 +52,7 @@ class InsertStatement : public Statement {
     InsertStatement(string table_name, vector<string> columns,vector<string> values);
     // void print() const override;
 
-    void execute(Database* database) const override;
+    void execute(Transaction* tx) const override;
 
 };
 
@@ -62,7 +64,7 @@ class DeleteStatement : public Statement {
     DeleteStatement(string table_name,shared_ptr<Expr>  where_condition);
     // void print() const override;
 
-    void execute(Database* database) const override;
+    void execute(Transaction* tx) const override;
 
 };
 
@@ -76,6 +78,6 @@ class UpdateStatement : public Statement {
     UpdateStatement(string table_name,vector<pair<string,string>> newColumnValues,shared_ptr<Expr>  where_condition);
     // void print() const override;
 
-    void execute(Database* database) const override;
+    void execute(Transaction* tx) const override;
 
 };

@@ -11,10 +11,10 @@ using namespace std;
 
 
 class Database {
-    unordered_map<string,Table *> tables; 
-    string name;
 
    public:
+    string name;
+    unordered_map<string,Table *> tables; 
    fstream *data_file=new fstream();
    fstream *metadata_file=new fstream();
     fstream *page_file=new fstream();

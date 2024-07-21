@@ -35,7 +35,9 @@ class Interpreter {
             // stmt->print();
             // cout<<"LESS GO"<<endl;
             for(auto &stmt:stmts){
-                stmt->execute(db);
+                Transaction* tx= new Transaction(db);
+                stmt->execute(tx);
+                tx->Commit();
             }
 
         }

@@ -1,5 +1,7 @@
 #pragma once
 #include "./include/statement.hpp"
+#include "../storage//include/transaction.hpp"
+
 #include "../cli-table-cpp/src/Table.cpp"
 
 #include <iostream>
@@ -12,9 +14,9 @@ SelectStatement::SelectStatement(string table_name, vector<string> columns, shar
     this->where_condition = where_condition;
 }
 
-
-void SelectStatement::execute(Database* db) const {
-    Table* table = db->GetTable(table_name);
+void SelectStatement::execute(Transaction* tx) const {
+   
+    Table* table = tx->GetTable(table_name);
     vector<Column> requestedColums;
     if (columns.size() == 1 && columns[0] == "*") {
         requestedColums = table->columns;
@@ -40,7 +42,7 @@ void SelectStatement::execute(Database* db) const {
     if (where_condition) {
         data = where_condition->execute(table, requestedColums);
     } else {
-        data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
+        data = tx->RangeQuery(NULL, NULL, requestedColums,true,true,table);
     }
 
     // cout<<"YOOO: "<<data.size()<<endl;
@@ -66,7 +68,7 @@ CreateStatement::CreateStatement(string table_name, vector<Column> columns){
 
 }
 
-void CreateStatement::execute(Database* database) const {
+void CreateStatement::execute(Transaction* tx) const {
     
     vector<string > types,names;
     for(auto column:columns){
@@ -75,7 +77,7 @@ void CreateStatement::execute(Database* database) const {
         
     }
     
-    database->CreateTable(table_name,types,names,0);
+    tx->CreateTable(table_name,types,names,0);
 
 }
 
@@ -87,21 +89,17 @@ InsertStatement::InsertStatement(string table_name, vector<string> columns,vecto
 
 }
 
-void InsertStatement::execute(Database* database) const {
+
+void InsertStatement::execute(Transaction* tx) const {
     
     
   
-    Table* table=database->GetTable(table_name);
-    cout<<"VALUEA"<<endl;
-    for(auto val:values){
-        cout<<val<<" ";
-    }
-    cout<<endl;
+    Table* table=tx->GetTable(table_name);
     
-    table->Insert(this->values);
+    
+    tx->Insert(this->values,table);
 
 }
-
 
 DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condition){
 
@@ -110,11 +108,11 @@ DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condi
 
 }
 
-void DeleteStatement::execute(Database* database) const {
+void DeleteStatement::execute(Transaction* tx) const {
     
     
   
-    Table* table=database->GetTable(table_name);
+    Table* table=tx->GetTable(table_name);
     vector<vector<string>> data;
     vector<Column> requestedColums=table->columns;
 
@@ -125,11 +123,11 @@ void DeleteStatement::execute(Database* database) const {
     if (where_condition) {
         data = where_condition->execute(table, requestedColums);
     } else {
-        data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
+        data = tx->RangeQuery(NULL, NULL, requestedColums,true,true,table);
     }
     // data = table->RangeQuery(NULL, NULL, {table->columns[table->primary_key_index]},true,true)
     for(auto item:data){
-        table->Delete(item[table->primary_key_index]);
+        tx->Delete(item[table->primary_key_index],table);
     }
 
     CliTable::Options opt;
@@ -154,9 +152,9 @@ UpdateStatement::UpdateStatement(string table_name,vector<pair<string,string>> n
 
 
 }
-void UpdateStatement::execute(Database* database) const {
+void UpdateStatement::execute(Transaction* tx) const {
 
-        Table* table=database->GetTable(table_name);
+        Table* table=tx->GetTable(table_name);
     vector<vector<string>> data;
 
     vector<Column> requestedColums=table->columns;
@@ -177,7 +175,7 @@ void UpdateStatement::execute(Database* database) const {
         // cout<<"SIT DOWN BHAII"<<endl;
         data = where_condition->execute(table, requestedColums);
     } else {
-        data = table->RangeQuery(NULL, NULL, requestedColums,true,true);
+        data = tx->RangeQuery(NULL, NULL, requestedColums,true,true,table);
     }
 
    
@@ -190,7 +188,7 @@ void UpdateStatement::execute(Database* database) const {
             item[getIndex[columnName]]=newValue;
 
         }
-        table->Update(item);
+        tx->Update(item,table);
     }
 
 

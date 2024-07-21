@@ -94,10 +94,3 @@ Table* Database::CreateTable(string table_name, vector<string> types, vector<str
 Database::~Database() { data_file->close(); }
 
     
-
-Table* Database::GetTable(string table_name){
-
-    Table* table=this->tables[table_name];
-    return table;
-
-}

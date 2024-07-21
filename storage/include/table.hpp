@@ -33,15 +33,15 @@ class Table {
     vector<Column> columns;
     string table_name,database_name;
     Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file,int primary_key_index);
-    void Insert(vector<string> args);
-    void Update(vector<string> args);
-    string Search(string key,string column_name);
-    void Delete(string key);
-    void CreateIndex(string column_name);
-    vector<vector<string>> RangeQuery(string* key1,string* key2,vector<Column> types,bool includeKey1,bool includeKey2,string column_name="");
+    void Insert(vector<string> args,uint64_t transaction_id);
+    void Update(vector<string> args,uint64_t transaction_id);
+    string Search(string key,string column_name,uint64_t transaction_id);
+    void Delete(string key,uint64_t transaction_id);
+    void CreateIndex(string column_name,uint64_t transaction_id);
+    vector<vector<string>> RangeQuery(string* key1,string* key2,vector<Column> types,uint64_t transaction_id,bool includeKey1,bool includeKey2,string column_name);
     vector<string> Deconstruct(string row,vector<Column> types);
     optional<string> readValue(uint64_t pageNumber, uint16_t blockNumber);
-    Block writeData(string key, string value);
+    Block writeData(string key, string value,uint64_t transaction_id);
     Index* getIndex(string column_name);
     void Print(string column_name);
     
