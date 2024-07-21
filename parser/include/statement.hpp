@@ -107,3 +107,15 @@ class CommitStatement : public Statement {
     void execute(Transaction* tx) const override;
 
 };
+class RollbackStatement : public Statement {
+   public:
+    string table_name;
+    vector<pair<string,string>> newColumnValues;
+    shared_ptr<Expr> where_condition;
+
+    RollbackStatement();
+    // void print() const override;
+
+    void execute(Transaction* tx) const override;
+
+};

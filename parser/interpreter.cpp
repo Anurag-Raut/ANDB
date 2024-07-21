@@ -51,6 +51,13 @@ class Interpreter {
                     isTransactionRunning=false;
 
                 }
+                else if (dynamic_cast<RollbackStatement *>(stmt.get())) {
+                    cout<<"OH YEAHH ROLLBACK"<<endl;
+                    tx->Rollback();
+                    tx=NULL;
+                    isTransactionRunning=false;
+
+                }
             }
         }
     }

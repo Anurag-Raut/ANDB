@@ -16,6 +16,7 @@ extern const size_t Block_HEADER_SIZE=(2*sizeof(uint16_t)) + sizeof(uint64_t)+si
 extern uint64_t TRANSACTION_ID=1;
 vector<uint64_t> active_transactions;
 
+
 std::string getDatabaseFilePath(std::string database_name) {
     string filepath=BASE_DIRECTORY+database_name;
     namespace fs = std::filesystem;
@@ -36,6 +37,17 @@ std::string getMetadataFilePath(std::string database_name) {
         }
     }
     return BASE_DIRECTORY + database_name  +  "/metadata";
+}
+std::string getTransactionLogFilePath(std::string database_name) {
+        string filepath=BASE_DIRECTORY+database_name;
+
+    namespace fs = std::filesystem;
+    if (!fs::exists(filepath)) {
+        if (!fs::create_directory(filepath)) {
+            throw runtime_error("Failed to create directory: " + filepath);
+        }
+    }
+    return BASE_DIRECTORY + database_name  +  "/transaction_log";
 }
 std::string getPageFilePath(std::string database_name) {
         string filepath=BASE_DIRECTORY+database_name;

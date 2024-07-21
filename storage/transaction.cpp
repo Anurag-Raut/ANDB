@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "./include/database.hpp"
 #include "./include/globals.hpp"
 #include "string"
 
@@ -15,6 +16,8 @@ Transaction::Transaction(Database* database) {
     this->transaction_id = TRANSACTION_ID;
     active_transactions.push_back(TRANSACTION_ID);
     snapshot = new Snapshot{active_transactions : active_transactions};
+    cout<<"PROGRESS: "<<static_cast<int>(TRANSACTION_STATUS::IN_PROGRESS)<<endl;
+    database->UpdateTransactionLog(TRANSACTION_ID,TRANSACTION_STATUS::IN_PROGRESS);
     TRANSACTION_ID++;
 }
 
@@ -76,10 +79,12 @@ void Transaction::Commit() {
     if (it != active_transactions.end()) {
         active_transactions.erase(it);
     }
+    database->UpdateTransactionLog(transaction_id,TRANSACTION_STATUS::COMMITED);
+
 }
 
 bool Transaction::IsVisible(uint64_t t_ins, uint64_t t_del) {
-    cout << "TX_INSERTED DELTED: " << t_ins <<" "<<t_del<< endl;
+    cout << "TX_INSERTED DELTED: " << t_ins << " " << t_del << endl;
     cout << "CURRENT TRNASCTION: " << this->transaction_id << endl;
     // for()
     cout << "ACTIVE TRNASCTIONS : " << endl;
@@ -100,14 +105,28 @@ bool Transaction::IsVisible(uint64_t t_ins, uint64_t t_del) {
     }
     bool isInsertedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_ins) != active_transactions.end());
     bool isDeletedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_del) != active_transactions.end());
-    
+    TRANSACTION_STATUS del_status = database->ReadTransactionLog(t_del);
+    TRANSACTION_STATUS ins_status = database->ReadTransactionLog(t_ins);
+    cout<<"INSERTED_STATUS: " << uint8_t(ins_status)<<endl;
+        cout<<"DELETED_STATUS: "<< uint8_t(del_status)<<endl;
+
     if (!isInsertedByActiveTransaction) {
         isVisible = true;
     }
 
-    if (!isDeletedByActiveTransaction && t_del!=0) {
+    if (!isDeletedByActiveTransaction && t_del != 0) {
+        isVisible = false;
+    }
+
+    if (del_status == TRANSACTION_STATUS::ABORTED) {
+        cout<<"SASAS"<<endl;
+        isVisible = true;
+    }
+    if (ins_status == TRANSACTION_STATUS::ABORTED) {
         isVisible = false;
     }
 
     return isVisible;
 }
+
+void Transaction::Rollback() { this->database->UpdateTransactionLog(transaction_id, TRANSACTION_STATUS::ABORTED); }

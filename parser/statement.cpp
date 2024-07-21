@@ -169,7 +169,16 @@ void UpdateStatement::execute(Transaction* tx) const {
 }
 
 BeginStatement::BeginStatement() {}
-void BeginStatement::execute(Transaction* tx) const {}
+void BeginStatement::execute(Transaction* tx) const {
+ 
+}
 CommitStatement::CommitStatement() {}
 
-void CommitStatement::execute(Transaction* tx) const {}
+void CommitStatement::execute(Transaction* tx) const {
+
+}
+RollbackStatement::RollbackStatement() {}
+
+void RollbackStatement::execute(Transaction* tx) const {
+
+}

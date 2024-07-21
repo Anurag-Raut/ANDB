@@ -30,5 +30,6 @@ class Transaction {
 
     void Commit();
     bool IsVisible(uint64_t t_ins,uint64_t t_del);
+    void Rollback();
 
 };

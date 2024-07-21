@@ -41,7 +41,9 @@ class Parser {
                 else if(token.value=="COMMIT"){
                     stmts.push_back(parseCommitStatement());
                 }
-
+                else if(token.value=="ROLLBACK"){
+                    stmts.push_back(parseRollbackStatement());
+                }
                 // else if (token.value == "DROP") {
                 //     return parseDropStatement();
                 // } else if (token.value == "ALTER") {
@@ -375,6 +377,10 @@ class Parser {
     unique_ptr<CommitStatement> parseCommitStatement() {
         consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
         return make_unique<CommitStatement>();
+    }
+    unique_ptr<RollbackStatement> parseRollbackStatement() {
+        consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
+        return make_unique<RollbackStatement>();
     }
 
 

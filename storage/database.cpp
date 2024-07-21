@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 
-
 #include "./include/globals.hpp"
 #include "./table.cpp"
 
@@ -14,6 +13,7 @@ Database::Database(string name) {
     string dataFilePath = getDatabaseFilePath(name);
     string metadataFilePath = getMetadataFilePath(name);
     string pageFilePath = getPageFilePath(name);
+    string transaction_logPath = getTransactionLogFilePath(name);
     this->name = name;
     // Debugging output
     cout << "Attempting to create/open files at: " << dataFilePath << " and " << metadataFilePath << endl;
@@ -37,6 +37,7 @@ Database::Database(string name) {
     metadata_file->open(metadataFilePath, ios::out | ios::trunc | ios::in);
 
     page_file->open(pageFilePath, ios::out | ios::trunc | ios::in);
+    transaction_log->open(transaction_logPath, ios::out | ios::trunc | ios::in);
 
     // Check if files are opened
     if (data_file->is_open()) {
@@ -59,10 +60,16 @@ Database::Database(string name) {
         cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
         throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
     }
+    if (transaction_log->is_open()) {
+        cout << "Page file CREATED." << std::endl;
+    } else {
+        cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
+        throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
+    }
 }
 
 Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
-    Table* newTable = new Table(table_name, types, names, this->name, data_file, page_file,primary_key_index);
+    Table* newTable = new Table(table_name, types, names, this->name, data_file, page_file, primary_key_index);
     *metadata_file << table_name << " ";
     // cout<<"TYPE:"<<endl;
     for (int i = 0; i < types.size(); i++) {
@@ -86,11 +93,38 @@ Table* Database::CreateTable(string table_name, vector<string> types, vector<str
     }
     *metadata_file << endl;
     metadata_file->flush();
-    tables[table_name]=(newTable);
-    cout<<"TABLE " +table_name + " CREATED"<<endl;
+    tables[table_name] = (newTable);
+    cout << "TABLE " + table_name + " CREATED" << endl;
     return newTable;
 }
 
 Database::~Database() { data_file->close(); }
 
-    
+void Database::UpdateTransactionLog(uint64_t transaction_id, TRANSACTION_STATUS status) {
+    cout<<"WOOOOAOOOH  status: "<<static_cast<int>(status)<<endl;
+    transaction_log->seekp(transaction_id * sizeof(status), std::ios::beg);
+    char buffer[sizeof(transaction_id)+sizeof(uint8_t)];
+    memcpy(buffer,&transaction_id,sizeof(transaction_id));
+    size_t offset=sizeof(transaction_id);
+    memcpy(buffer+offset,&status,sizeof(status));
+
+    transaction_log->write(buffer, sizeof(buffer));
+    if (!transaction_log->good()) {
+        throw std::runtime_error("Failed to write to transaction log.");
+    }
+
+}
+
+TRANSACTION_STATUS Database::ReadTransactionLog(uint64_t transaction_id) {
+    transaction_log->seekg(transaction_id * sizeof(uint8_t), std::ios::beg);
+    char buffer[sizeof(transaction_id)+sizeof(uint8_t)];
+    TRANSACTION_STATUS status;
+    transaction_log->read(buffer, sizeof(buffer));
+    if (!transaction_log->good()) {
+        throw std::runtime_error("Failed to read from transaction log.");
+    }
+    memcpy(&status,buffer+sizeof(transaction_id),sizeof(status));
+    cout<<"status_int: "<<int(status)<<endl;
+    return status;
+}
+
