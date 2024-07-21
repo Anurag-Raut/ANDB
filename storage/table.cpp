@@ -104,7 +104,7 @@ bool parseArgument(const string& arg, const string& type) {
     return false;  // Unknown type
 }
 
-void Table::Insert(vector<string> args,uint64_t transaction_id) {
+void Table::Insert(vector<string> args, uint64_t transaction_id) {
     if (args.size() != columns.size()) {
         cout << "COLUMNS SIZE: " << columns.size() << " ARgs Size: " << args.size() << endl;
         cout << "ERROR : args size not equal to column data";
@@ -132,11 +132,11 @@ void Table::Insert(vector<string> args,uint64_t transaction_id) {
     }
     string joinedArgs = ss.str();
 
-    Block newData = writeData(args[primary_key_index], joinedArgs,transaction_id);
+    Block newData = writeData(args[primary_key_index], joinedArgs, transaction_id);
     // cout<<"key: "<<newData.key<<"BLOCK: " <<newData.blockNumber.value()<<endl;
 
     for (auto index : indexes) {
-        cout<<"INSERTING: "<<args[1]<<endl;
+        // cout << "INSERTING: " << args[1] << endl;
         index->btree->insert(newData);
     }
 }
@@ -154,7 +154,7 @@ MetadataDataPage readMetadata(char buffer[PAGE_SIZE]) {
     return metadata;
 }
 
-int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, fstream* page_file, bool newPage,uint64_t transaction_id) {
+int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, fstream* page_file, bool newPage, uint64_t transaction_id) {
     int pageOffset = pageNumber * PAGE_SIZE;
     char buffer[PAGE_SIZE] = {0};
     uint32_t headerSize = 3 * sizeof(uint16_t);
@@ -186,12 +186,13 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     int valueCellSize = val.size();
     // cout << "value cell size: " << valueCellSize << endl;
     // Copy the block offset for the new entry
-    size_t offset=0;
-    memcpy(buffer + headerSize + (metadata.noOfBlocks - 1) * (Block_HEADER_SIZE), &blockOffset, sizeof(blockOffset));
-    offset+=sizeof(blockOffset);
+    size_t offset = 0;
+    memcpy(buffer + headerSize + (metadata.noOfBlocks - 1) * (Block_HEADER_SIZE) , &blockOffset, sizeof(blockOffset));
+    offset += sizeof(blockOffset);
     memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &valueCellSize, uint16_t(val.size()));
-    offset+=sizeof(uint16_t(val.size()));
-    memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &transaction_id, uint16_t(transaction_id));
+    offset += sizeof(uint16_t(val.size()));
+    cout<<"CAS: "<<( headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset)<<endl;
+    memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &transaction_id, sizeof(transaction_id));
 
     // Copy the actual value into the page
     memcpy(buffer + blockOffset, val.c_str(), val.size());
@@ -217,7 +218,7 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     return metadata.noOfBlocks - 1;
 }
 
-int updateValueInDataFile(string val, uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, fstream* page_file,uint64_t transaction_id) {
+int updateValueInDataFile(string val, uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, fstream* page_file, uint64_t transaction_id) {
     int pageOffset = pageNumber * PAGE_SIZE;
     char buffer[PAGE_SIZE];
 
@@ -257,10 +258,10 @@ int updateValueInDataFile(string val, uint64_t pageNumber, uint16_t blockNumber,
     data_file->write(buffer, PAGE_SIZE);
 
     // Insert the new value
-    return insertValueToDataFile(val, pageNumber, data_file, page_file, false,transaction_id);
+    return insertValueToDataFile(val, pageNumber, data_file, page_file, false, transaction_id);
 }
 
-Block Table::writeData(string key, string value,uint64_t transaction_id) {
+Block Table::writeData(string key, string value, uint64_t transaction_id) {
     string page_data;
     uint64_t pageNumber = 0;
     bool newPage = true;
@@ -285,7 +286,7 @@ Block Table::writeData(string key, string value,uint64_t transaction_id) {
     //     cout << "INSERTING: " << key << endl;
     //     cout << "PWGEFE:  " << pageNumber << endl;
     // cout<<"newPage "<<newPage<<endl;
-    int blockNumber = insertValueToDataFile(value, pageNumber, data_file, page_file, newPage,transaction_id);
+    int blockNumber = insertValueToDataFile(value, pageNumber, data_file, page_file, newPage, transaction_id);
     if (blockNumber == -1) {
         // cout << "FFF" << endl;
         return Block{.key = "asdsdsd"};
@@ -298,7 +299,7 @@ Block Table::writeData(string key, string value,uint64_t transaction_id) {
     };
 }
 
-void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, fstream* page_file,uint64_t transaction_id) {
+void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, fstream* page_file, uint64_t transaction_id) {
     char buffer[PAGE_SIZE];
     uint32_t headerSize = 3 * sizeof(uint16_t);
 
@@ -309,8 +310,10 @@ void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, f
     int ogNoOfBlocks = metadata.noOfBlocks;
     int ogEndOffset = metadata.endOffset;
     // char newBuffer[PAGE_SIZE];
+    cout<<"DELETE : "<<headerSize + (blockNumber * Block_HEADER_SIZE) + ((2 * sizeof(uint16_t)) + sizeof(uint64_t))<<endl;
 
-    memcpy(buffer + headerSize + (blockNumber*Block_HEADER_SIZE) + ((2*sizeof(uint16_t))+sizeof(uint64_t)), &transaction_id, sizeof(transaction_id));
+    memcpy(buffer + headerSize + (blockNumber * Block_HEADER_SIZE) + ((2 * sizeof(uint16_t)) + sizeof(uint64_t)), &transaction_id,
+           sizeof(transaction_id));
 
     // cout << "BLOCK NUMBER: " << blockNumber << endl;
     // for (int i = 0; i < ogNoOfBlocks; i++) {
@@ -349,7 +352,8 @@ void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, f
     //     // //moving value
     //     // memcpy(&buffer+blockNumber,buffer+nextBlockOffset,blockOffset-nextBlockOffset);
 
-    //     // memcpy(&buffer+headerSize+(sizeof(uint16_t)*blockNumber), buffer + headerSize + (sizeof(uint16_t) * blockNumber+1), sizeof(blockOffset));
+    //     // memcpy(&buffer+headerSize+(sizeof(uint16_t)*blockNumber), buffer + headerSize + (sizeof(uint16_t) * blockNumber+1),
+    //     sizeof(blockOffset));
     // }
     // cout << "no of blocks:" << metadata.noOfBlocks << " og blocks: " << ogNoOfBlocks << endl;
     // memcpy(buffer, &metadata.noOfBlocks, sizeof(metadata.noOfBlocks));
@@ -360,7 +364,6 @@ void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, f
     data_file->write(buffer, PAGE_SIZE);
     data_file->flush();
     page_file->clear();
-  
 
     // PageMap pageMap;
     // pageMap.readFromFile(pageNumber, page_file);
@@ -369,8 +372,7 @@ void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, f
     // pageMap.writeToFile(page_file);
 }
 
-
-optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
+pair<optional<string>, pair<uint64_t, uint64_t>> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
     char buffer[PAGE_SIZE];
     int pageOffset = pageNumber * PAGE_SIZE;
     data_file->seekg(pageOffset, ios::beg);
@@ -379,23 +381,31 @@ optional<string> Table::readValue(uint64_t pageNumber, uint16_t blockNumber) {
     int headerSize = metadata.size();
     // cout << "BLOCK NUMBER : " << blockNumber << " " << metadata.begOffset << " " << metadata.noOfBlocks << " " << metadata.endOffset << endl;
     if (blockNumber >= metadata.noOfBlocks) {
-        return nullopt;  // Block number out of range
+        return {nullopt, {0, 0}};  // Block number out of range
     }
-
+    size_t offset = 0;
     uint16_t blockOffset;
     memcpy(&blockOffset, buffer + headerSize + (Block_HEADER_SIZE * blockNumber), sizeof(blockOffset));
     // cout << "READ: BLOCK OFFSET block : " << blockNumber << " is : " << blockOffset << endl;
     if (blockOffset == 0) {
-        return nullopt;
+        return {nullopt, {0, 0}};
     }
+    offset += sizeof(blockOffset);
     uint16_t sizeOfValueCell;
 
-    memcpy(&sizeOfValueCell, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + sizeof(uint16_t), sizeof(uint16_t));
-    cout<<"VAL SIZE "<<sizeOfValueCell<<endl;
+    memcpy(&sizeOfValueCell, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + offset, sizeof(uint16_t));
+    cout << "VAL SIZE " << sizeOfValueCell << endl;
+    offset += sizeof(sizeOfValueCell);
+    uint64_t t_ins, t_del;
+    memcpy(&t_ins, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + offset, sizeof(t_ins));
+    cout<<"T INS : "<<headerSize + (Block_HEADER_SIZE * blockNumber) + offset<<endl;
+    offset += sizeof(t_ins);
+    memcpy(&t_del, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + offset, sizeof(t_del));
+
     string value(sizeOfValueCell, '\0');
     memcpy(&value[0], buffer + blockOffset, sizeOfValueCell);
 
-    return value;
+    return {value, {t_ins, t_del}};
 }
 
 void Table::Print(string column_name) {
@@ -455,9 +465,9 @@ Index* Table::getIndex(string column_name) {
     return index;
 }
 
-vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types,uint64_t transaction_id, bool includeKey1 = true, bool includeKey2 = true,
-                                         string column_name="") {
-    vector<vector<string>> rows;
+vector<pair<vector<string>,pair<uint64_t, uint64_t>>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true,
+                                         bool includeKey2 = true, string column_name = "") {
+    vector<pair<vector<string>,pair<uint64_t, uint64_t>>>  rows;
     Index* index = this->getIndex(column_name);
     if (!index) {
         return rows;
@@ -487,31 +497,37 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
         i++;
     }
 
-
     // cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
     while ((key2) ? (key <= *key2) : (currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
         blNumber = currentNode->blocks[i].blockNumber.value();
         // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
         pgNumber = currentNode->blocks[i].pageNumber.value();
-        optional<string> foundValue = readValue(pgNumber, blNumber);
-        // cout << "FOUND VALUE :" << foundValue.value() << endl;
+        pair<optional<string>, pair<uint64_t, uint64_t>> read_value_data = readValue(pgNumber, blNumber);
+        optional<string> foundValue = read_value_data.first;
+        uint64_t t_ins = read_value_data.second.first;
+        uint64_t t_del = read_value_data.second.second;
+
+        cout << "FOUND VALUE :" << t_ins<<" "<<t_del<< endl;
         vector<string> rowData = this->Deconstruct(foundValue.value(), types);
-        cout << "ROW DATA:" << rowData[0] << endl;
-        if (key1 && key == *key1 && includeKey1) {
-            rows.push_back(rowData);
+        // cout << "ROW DATA:" << rowData[0] << endl;
+        // if(){
+        // if(tx->IsVisible(t_ins,t_del)){
+        // }
+         if (key1 && key == *key1 && includeKey1) {
+            rows.push_back({rowData,{t_ins,t_del}});
         } else if (key2 && key == *key2 && includeKey2) {
-            rows.push_back(rowData);
+            rows.push_back({rowData,{t_ins,t_del}});
 
         } else if (key1 && *key1 != key) {
-            rows.push_back(rowData);
+            rows.push_back({rowData,{t_ins,t_del}});
 
         } else if (key2 && *key2 != key) {
-            rows.push_back(rowData);
+            rows.push_back({rowData,{t_ins,t_del}});
         } else if (!key1 || !key2) {
-            rows.push_back(rowData);
+            rows.push_back({rowData,{t_ins,t_del}});
         }
-        cout<<"HELLO "<<rows.size()<<endl;
-      
+        cout << "HELLO " << rows.size() << endl;
+
         if ((i + 1) < currentNode->blocks.size()) {
             i = i + 1;
         } else {
@@ -528,11 +544,10 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
         key = currentNode->blocks[i].key;
     }
 
-
     return rows;
 }
 
-string Table::Search(string key, string column_name,uint64_t transaction_id) {
+string Table::Search(string key, string column_name, uint64_t transaction_id) {
     Index* index = this->getIndex(column_name);
     if (!index) {
         return "";
@@ -549,7 +564,10 @@ string Table::Search(string key, string column_name,uint64_t transaction_id) {
         // cout << "KEY:: " << key << "  MEDDIATORS:  " << SearchData.first->nextSibling << endl;
 
         // cout<<"key : "<<key<<data.pageNumber.value()<<data.blockNumber.value()<<endl;
-        optional<string> foundValue = readValue(data.pageNumber.value(), data.blockNumber.value());
+        pair<optional<string>, pair<uint64_t, uint64_t>> read_value_data = readValue(data.pageNumber.value(), data.blockNumber.value());
+        optional<string> foundValue = read_value_data.first;
+        uint64_t t_ins = read_value_data.second.first;
+        uint64_t t_del = read_value_data.second.second;
         if (foundValue.has_value()) {
             return foundValue.value();
         }
@@ -560,42 +578,46 @@ string Table::Search(string key, string column_name,uint64_t transaction_id) {
     }
 }
 
-void Table::Update(vector<string> args,uint64_t transaction_id) {
+void Table::Update(vector<string> args, uint64_t transaction_id) {
     // cout<<"INSANE: "<<args[primary_key_index]<<endl;
     Delete(args[primary_key_index], transaction_id);
-    Insert(args,transaction_id);
+    Insert(args, transaction_id);
 }
 
-void Table::Delete(string key,uint64_t transaction_id) {
+void Table::Delete(string key, uint64_t transaction_id) {
+    cout<<"OH YEAHHH BABBYY"<<endl;
     vector<Block> deletedBlocks;
     for (auto index : indexes) {
         deletedBlocks = index->btree->deleteNode(key);
     }
+        cout<<"OH YEAHHH "<<endl;
+
 
     if (deletedBlocks.size() > 0) {
         for (auto delBlock : deletedBlocks) {
             // cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() <<
             // endl;
-            deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file,transaction_id);
+            deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file, transaction_id);
         }
     } else {
         cout << "Record Not found" << endl;
     }
+    // cout<<"DONEE"<<endl;
 }
 
-void Table::CreateIndex(string column_name,uint64_t transaction_id) {
+void Table::CreateIndex(string column_name, uint64_t transaction_id) {
     for (auto index : indexes) {
         if (index->columnName == column_name) {
             cout << "INDEX ALREADY EXISTS" << endl;
-            
+
             return;
         }
     }
-    cout<<"EASSYYY ohh"<<endl;
+    cout << "EASSYYY ohh" << endl;
     Index* index = new Index(database_name, table_name, column_name);
     indexes.push_back(index);
     Index* primaryIndex = getIndex("");
-    cout<<primaryIndex->columnName<<endl;
+    cout << primaryIndex->columnName << endl;
     // vector<vector<string>> rows=this->RangeQuery(NULL,NULL,columns);
     pair<BTreeNode*, optional<Block>> SearchResult1 = primaryIndex->btree->beg();
     BTreeNode* currentNode = SearchResult1.first;
@@ -605,11 +627,11 @@ void Table::CreateIndex(string column_name,uint64_t transaction_id) {
         cout << "DRAMME" << endl;
 
         cout << "KEY NOT FOUND" << endl;
-        return ;
+        return;
     }
     if (currentNode == NULL) {
         cout << "EMPTY";
-        return ;
+        return;
     }
     Block data = optData.value();
     string key = data.key;
@@ -618,9 +640,12 @@ void Table::CreateIndex(string column_name,uint64_t transaction_id) {
     int i = 0;
     while ((currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
         blNumber = currentNode->blocks[i].blockNumber.value();
-        cout<<"pageNumver: "<<pgNumber<<" BL NUMBER HEHEHE : "<<blNumber<<endl;
+        cout << "pageNumver: " << pgNumber << " BL NUMBER HEHEHE : " << blNumber << endl;
         pgNumber = currentNode->blocks[i].pageNumber.value();
-        optional<string> foundValue = readValue(pgNumber, blNumber);
+        pair<optional<string>, pair<uint64_t, uint64_t>> read_value_data = readValue(data.pageNumber.value(), data.blockNumber.value());
+        optional<string> foundValue = read_value_data.first;
+        uint64_t t_ins = read_value_data.second.first;
+        uint64_t t_del = read_value_data.second.second;
         if (!foundValue.has_value()) {
             cout << "ERROR VALUE NOT FOUND, corrupted";
             return;

@@ -35,6 +35,13 @@ class Parser {
                 } else if (token.value == "CREATE") {
                     stmts.push_back(parseCreateStatement());
                 }
+                else if(token.value=="BEGIN"){
+                    stmts.push_back(parseBeginStatement());
+                }
+                else if(token.value=="COMMIT"){
+                    stmts.push_back(parseCommitStatement());
+                }
+
                 // else if (token.value == "DROP") {
                 //     return parseDropStatement();
                 // } else if (token.value == "ALTER") {
@@ -360,6 +367,17 @@ class Parser {
 
         return make_unique<UpdateStatement>(table_name,newColumnValues, where_condition);
     }
+
+    unique_ptr<BeginStatement> parseBeginStatement() {
+        consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
+        return make_unique<BeginStatement>();
+    }
+    unique_ptr<CommitStatement> parseCommitStatement() {
+        consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
+        return make_unique<CommitStatement>();
+    }
+
+
     // optional<Statement> parseDropStatement() {}
     // optional<Statement> parseAlterStatement() {}
 };

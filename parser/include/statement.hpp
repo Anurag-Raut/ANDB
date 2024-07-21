@@ -81,3 +81,29 @@ class UpdateStatement : public Statement {
     void execute(Transaction* tx) const override;
 
 };
+
+class BeginStatement : public Statement {
+   public:
+    string table_name;
+    vector<pair<string,string>> newColumnValues;
+    shared_ptr<Expr> where_condition;
+
+    BeginStatement();
+    // void print() const override;
+
+    void execute(Transaction* tx) const override;
+
+};
+
+class CommitStatement : public Statement {
+   public:
+    string table_name;
+    vector<pair<string,string>> newColumnValues;
+    shared_ptr<Expr> where_condition;
+
+    CommitStatement();
+    // void print() const override;
+
+    void execute(Transaction* tx) const override;
+
+};

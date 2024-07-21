@@ -324,14 +324,15 @@ pair<optional<Block>, vector<Block>> BTreeNode::deleteHelper(string key, Btree* 
         while (j < blocks.size() && blocks[j].key == key) {
             // cout << "HHHAHHSH " << blocks[j].blockNumber.value() << endl;
             Block deletedBlock = blocks[j];
-            removeBlocksAtIndex(this, j);
+            // removeBlocksAtIndex(this, j);
             // cout << "HHHAHHSH " << blocks[j].blockNumber.value() << endl;
             this->balance(btree, parents);
             // cout<<"PAERNTTE: "<<parents.back().first->blocks.size()<<endl;
-            updateFlush(this, btree);
+            // updateFlush(this, btree);
             // cout<<"LEEEELLOOOOOn0"<<blocks[0].key<<endl;
             result.first=blocks[0];
             result.second.push_back(deletedBlock);
+            j++;
         } 
 
         return result;

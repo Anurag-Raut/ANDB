@@ -1,50 +1,57 @@
 #include <iostream>
-#include <optional>
 #include <memory>
-#include "./tokenizer.cpp"
-#include "./expr.cpp"
+#include <optional>
 
-#include "./parser.cpp"
+#include "./expr.cpp"
 #include "./include/statement.hpp"
+#include "./parser.cpp"
+#include "./tokenizer.cpp"
 class Interpreter {
    public:
-    Interpreter(Database *db) {
-
+    Interpreter(Database *db, string query) {
         // string query = "SELECT id,salary,age,name from test_table where index=\"key2\"";
-        string query=R"(
-        CREATE TABLE newtable (name STRING , age INT, salary INT)
-        
-        INSERT INTO newtable VALUES("key1" , 10 , 5000)
-        INSERT INTO newtable VALUES("key2" , 20 , 2000)
-        INSERT INTO newtable VALUES("key3" , 30 , 3000)
- 
-        SELECT age,name FROM newtable
-        UPDATE newtable SET salary = 70000, age = 31 WHERE name = "key3";
-        SELECT age,name,salary FROM newtable
-
-
-        )";
         // cout<<"THE ROCK: "<<query<<endl;oo
         Tokenizer tokenizer(query);
         // tokenizer.print();
         Parser parser(tokenizer.tokens);
-        
-        vector<unique_ptr<Statement>> stmts=parser.parse();
 
-        if(stmts.size()>0){
+        vector<unique_ptr<Statement>> stmts = parser.parse();
+                Transaction *tx = NULL;
+                bool isTransactionRunning=false;
+
+        if (stmts.size() > 0) {
             // stmt->print();
             // cout<<"LESS GO"<<endl;
-            for(auto &stmt:stmts){
-                Transaction* tx= new Transaction(db);
+            for (auto &stmt : stmts) {
+                        // cout<<"ARE WE GOOD"<<endl;
+
+                if(isTransactionRunning && dynamic_cast<BeginStatement *>(stmt.get())){
+                    runtime_error("TRANSACTION ALREADY RUNNING");
+
+                }
+                else if (dynamic_cast<BeginStatement*>(stmt.get())) {
+                    isTransactionRunning=true;
+                    tx=new Transaction(db);
+                }  
+ 
+                if(!isTransactionRunning){
+                    tx=new Transaction(db);
+                }
+              
+               
+
                 stmt->execute(tx);
-                tx->Commit();
+                if(!isTransactionRunning){
+                    tx->Commit();
+                }
+                else if (dynamic_cast<CommitStatement *>(stmt.get())) {
+                    cout<<"OH YEAHH BABBY"<<endl;
+                    tx->Commit();
+                    tx=NULL;
+                    isTransactionRunning=false;
+
+                }
             }
-
         }
-      
-        
-        
-
-
     }
 };

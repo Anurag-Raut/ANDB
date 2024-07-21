@@ -13,7 +13,7 @@ const std::string BASE_DIRECTORY = std::filesystem::current_path().string() + "/
 extern const int HEADER_SIZE = sizeof(uint32_t) ; // Page ID 
 extern const int OFFSET_SIZE=sizeof(uint16_t);
 extern const size_t Block_HEADER_SIZE=(2*sizeof(uint16_t)) + sizeof(uint64_t)+sizeof(uint64_t);
-extern uint64_t TRANSACTION_ID=0;
+extern uint64_t TRANSACTION_ID=1;
 vector<uint64_t> active_transactions;
 
 std::string getDatabaseFilePath(std::string database_name) {

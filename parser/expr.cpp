@@ -4,7 +4,6 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-
 #include "../storage/include/table.hpp"
 
 using namespace std;
@@ -13,18 +12,18 @@ ANDExpr::ANDExpr(shared_ptr<Expr> left, shared_ptr<Expr> right) {
     this->left = (left);
     this->right = (right);
 }
-vector<vector<string>> ANDExpr::execute(Table* table, vector<Column> requestedColums) { return {{}}; }
+vector<vector<string>> ANDExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
 
 ORExpr::ORExpr(shared_ptr<Expr> left, shared_ptr<Expr> right) {
     this->left = (left);
     this->right = (right);
 }
 
-vector<vector<string>> ORExpr::execute(Table* table, vector<Column> requestedColums) { return {{}}; }
+vector<vector<string>> ORExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
 IdentifierExpr::IdentifierExpr(string name) { this->name = name; }
-vector<vector<string>> IdentifierExpr::execute(Table* table, vector<Column> requestedColums) { return {{}}; }
+vector<vector<string>> IdentifierExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
 LiteralExpr::LiteralExpr(string literal) { this->literal = literal; }
-vector<vector<string>> LiteralExpr::execute(Table* table, vector<Column> requestedColums) { return {{}}; }
+vector<vector<string>> LiteralExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
 
 BinaryExpr::BinaryExpr(shared_ptr<Expr> left, Token op, shared_ptr<Expr> right) {
     this->left = (left);
@@ -32,7 +31,7 @@ BinaryExpr::BinaryExpr(shared_ptr<Expr> left, Token op, shared_ptr<Expr> right) 
     this->op = op;
 }
 
-vector<vector<string>> BinaryExpr::execute(Table* table, vector<Column> requestedColums) {
+vector<vector<string>> BinaryExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) {
     shared_ptr<LiteralExpr> Literal;
     if (isLeftIdentifierExpr()) {
         Literal = dynamic_pointer_cast<LiteralExpr>(this->right);
@@ -43,19 +42,19 @@ vector<vector<string>> BinaryExpr::execute(Table* table, vector<Column> requeste
     // cout << "HELLO" << endl;
 
     if (op.value == "<") {
-        return table->RangeQuery(NULL, &Literal->literal, requestedColums, true, false);
+        return tx->RangeQuery(NULL, &Literal->literal, requestedColums, true, false,table);
 
     } else if (op.value == "<=") {
-        return table->RangeQuery(NULL, &Literal->literal, requestedColums, true, true);
+        return tx->RangeQuery(NULL, &Literal->literal, requestedColums, true, true,table);
 
     } else if (op.value == ">") {
-        return table->RangeQuery(&Literal->literal, NULL, requestedColums, false, true);
+        return tx->RangeQuery(&Literal->literal, NULL, requestedColums, false, true,table);
 
     } else if (op.value == ">=") {
-        return table->RangeQuery(&Literal->literal, NULL, requestedColums, true, true);
+        return tx->RangeQuery(&Literal->literal, NULL, requestedColums, true, true,table);
     }
     else if (op.value == "=") {
-        return table->RangeQuery(&Literal->literal, &Literal->literal, requestedColums, true, true);
+        return tx->RangeQuery(&Literal->literal, &Literal->literal, requestedColums, true, true,table);
     }
 
 }

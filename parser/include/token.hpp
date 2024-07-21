@@ -52,7 +52,7 @@ extern unordered_map<string, TokenType> keywordMap = {
     {"LIMIT", TokenType::KEYWORD},  {"OFFSET", TokenType::KEYWORD},
     {"INT",TokenType::KEYWORD},
     {"STRING",TokenType::KEYWORD},
-
+    {"BEGIN", TokenType::KEYWORD},    {"COMMIT", TokenType::KEYWORD},
     {"BOOL",TokenType::KEYWORD},
 
     };

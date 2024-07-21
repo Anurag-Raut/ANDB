@@ -4,10 +4,9 @@
 #include <string>
 #include <thread>  // For std::this_thread::sleep_for
 
-#include "storage/database.cpp"
 #include "parser/interpreter.cpp"
+#include "storage/database.cpp"
 #include "storage/transaction.cpp"
-
 
 using namespace std;
 
@@ -31,8 +30,6 @@ using namespace std;
 //     assert(tx->Search("key3", tx->table->columns[tx->table->primary_key_index].name) == "key3,3,3000,Jim");
 //     assert(tx->Search("key4", tx->table->columns[tx->table->primary_key_index].name) == "key4,4,4000,Jack");
 
-
-
 //     cout << "testInsertAndSearch passed!" << endl;
 // }
 // void testIndex(Table* table){
@@ -42,9 +39,6 @@ using namespace std;
 //     table->Insert({"key6", "7", "7000", "joshua"});
 //     assert(table->Search("key5", "age") == "key5,5,5000,Jimmy");
 //     assert(table->Search("key6", "age") == "key6,7,7000,joshua");
-
-
-
 
 // }
 // void testDelete(Table* table) {
@@ -81,8 +75,43 @@ void test() {
     // testUpdate(table);
     // testSearchNonExistentKeys(table);
     // table->Print(table->columns[table->primary_key_index].name);
+    string query = R"(
+        CREATE TABLE newtable (name STRING , age INT, salary INT)
+                BEGIN
+        
+        INSERT INTO newtable VALUES("key1" , 10 , 5000)
+        INSERT INTO newtable VALUES("key2" , 20 , 2000)
+        INSERT INTO newtable VALUES("key3" , 30 , 3000)
+        COMMIT
 
-    Interpreter interpreter(database);
+        BEGIN
+        DELETE FROM newtable WHERE name="key3"
+
+        COMMIT
+ 
+    
+     
+
+
+        )";
+    // UPDATE newtable SET salary = 70000, age = 31 WHERE name = "key3";
+    // SELECT age,name,salary FROM newtable
+
+    Interpreter interpreter(database, query);
+
+    string query2 = R"(
+                BEGIN
+        
+
+ 
+        SELECT age,name FROM newtable
+    
+     
+
+
+        )";
+
+    Interpreter interpreter2(database, query2);
 
     cout << "All tests passed!" << endl;
 }
