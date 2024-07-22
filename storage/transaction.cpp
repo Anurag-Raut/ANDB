@@ -1,5 +1,6 @@
 
 #include "./include/transaction.hpp"
+#include <unistd.h>  // for fsync
 
 #include <algorithm>
 #include <cstdint>
@@ -7,6 +8,7 @@
 #include "./include/database.hpp"
 #include "./include/globals.hpp"
 #include "string"
+
 
 using namespace std;
 
@@ -21,10 +23,14 @@ Transaction::Transaction(Database* database) {
     TRANSACTION_ID++;
 }
 
-void Transaction::Insert(vector<string> args, Table* table) { table->Insert(args, transaction_id); }
-void Transaction::Update(vector<string> args, Table* table) { table->Update(args, transaction_id); }
+void Transaction::Insert(vector<string> args, Table* table) { 
+    table->Insert(args, transaction_id,database->wal_file);
+ }
+void Transaction::Update(vector<string> args, Table* table) { 
+    table->Update(args, transaction_id,database->wal_file);
+ }
 string Transaction::Search(string key, string column_name, Table* table) { return table->Search(key, column_name, transaction_id); }
-void Transaction::Delete(string key, Table* table) { table->Delete(key, transaction_id); }
+void Transaction::Delete(string key, Table* table) { table->Delete(key, transaction_id,database->wal_file); }
 void Transaction::CreateIndex(string column_name, Table* table) { table->CreateIndex(column_name, transaction_id); }
 vector<vector<string>> Transaction::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1, bool includeKey2, Table* table,
                                                string column_name) {
@@ -80,6 +86,13 @@ void Transaction::Commit() {
         active_transactions.erase(it);
     }
     database->UpdateTransactionLog(transaction_id,TRANSACTION_STATUS::COMMITED);
+    WAL wal(OPERATION::COMMIT,transaction_id,NULL,NULL);
+    wal.write(database->wal_file);
+    database->data_file->flush();
+    database->metadata_file->seekp(0,ios::end);
+    cout<<"LSN  : "<<wal.LSN<<endl;
+    database->metadata_file->write(reinterpret_cast<const char*>(&wal.LSN),sizeof(wal.LSN));
+
 
 }
 

@@ -14,6 +14,7 @@ Database::Database(string name) {
     string metadataFilePath = getMetadataFilePath(name);
     string pageFilePath = getPageFilePath(name);
     string transaction_logPath = getTransactionLogFilePath(name);
+    string walFilePath=getWALFilePath(name);
     this->name = name;
     // Debugging output
     cout << "Attempting to create/open files at: " << dataFilePath << " and " << metadataFilePath << endl;
@@ -38,6 +39,8 @@ Database::Database(string name) {
 
     page_file->open(pageFilePath, ios::out | ios::trunc | ios::in);
     transaction_log->open(transaction_logPath, ios::out | ios::trunc | ios::in);
+    wal_file->open(walFilePath, ios::out | ios::trunc | ios::in);
+
 
     // Check if files are opened
     if (data_file->is_open()) {
@@ -66,10 +69,14 @@ Database::Database(string name) {
         cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
         throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
     }
+    uint64_t zero=0;
+    metadata_file->write(reinterpret_cast<char*>(&zero),sizeof(zero));
+
 }
 
 Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
     Table* newTable = new Table(table_name, types, names, this->name, data_file, page_file, primary_key_index);
+    metadata_file->seekp(0,ios::end);
     *metadata_file << table_name << " ";
     // cout<<"TYPE:"<<endl;
     for (int i = 0; i < types.size(); i++) {
@@ -127,4 +134,8 @@ TRANSACTION_STATUS Database::ReadTransactionLog(uint64_t transaction_id) {
     cout<<"status_int: "<<int(status)<<endl;
     return status;
 }
+
+
+
+
 

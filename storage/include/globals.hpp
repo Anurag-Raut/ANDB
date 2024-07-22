@@ -49,6 +49,17 @@ std::string getTransactionLogFilePath(std::string database_name) {
     }
     return BASE_DIRECTORY + database_name  +  "/transaction_log";
 }
+std::string getWALFilePath(std::string database_name) {
+        string filepath=BASE_DIRECTORY+database_name;
+
+    namespace fs = std::filesystem;
+    if (!fs::exists(filepath)) {
+        if (!fs::create_directory(filepath)) {
+            throw runtime_error("Failed to create directory: " + filepath);
+        }
+    }
+    return BASE_DIRECTORY + database_name  +  "/wal";
+}
 std::string getPageFilePath(std::string database_name) {
         string filepath=BASE_DIRECTORY+database_name;
 
