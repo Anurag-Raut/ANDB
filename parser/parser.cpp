@@ -34,14 +34,11 @@ class Parser {
                     stmts.push_back(parseDeleteStatement());
                 } else if (token.value == "CREATE") {
                     stmts.push_back(parseCreateStatement());
-                }
-                else if(token.value=="BEGIN"){
+                } else if (token.value == "BEGIN") {
                     stmts.push_back(parseBeginStatement());
-                }
-                else if(token.value=="COMMIT"){
+                } else if (token.value == "COMMIT") {
                     stmts.push_back(parseCommitStatement());
-                }
-                else if(token.value=="ROLLBACK"){
+                } else if (token.value == "ROLLBACK") {
                     stmts.push_back(parseRollbackStatement());
                 }
                 // else if (token.value == "DROP") {
@@ -72,14 +69,13 @@ class Parser {
         return false;
     }
 
-    void consume(TokenType type, string error_message) {
-        if (tokens[currentTokenIndex].type == type) {
-            currentTokenIndex++;
-            return;
-        } else {
-            __throw_runtime_error("error");
-        }
+    void consume(TokenType type, const string& error_message) {
+    if (currentTokenIndex < tokens.size() && tokens[currentTokenIndex].type == type) {
+        currentTokenIndex++;
+    } else {
+        throw runtime_error(error_message);
     }
+}
 
     unique_ptr<SelectStatement> parseSelectStatement() {
         string command;
@@ -87,13 +83,18 @@ class Parser {
         vector<string> columns;
         shared_ptr<Expr> where_condition;
         command = tokens[currentTokenIndex].value;
-        consume(TokenType::KEYWORD, "EXPecTED KEyWORD SELECT");
-        columns.push_back(tokens[currentTokenIndex].value);
-        consume(TokenType::IDENTIFIER, "EXPECTED A IDENTIFIER");
-        while (match({TokenType::COMMA})) {
-            consume(TokenType::COMMA, "EXpected comma");
+            consume(TokenType::KEYWORD, "EXPecTED KEyWORD SELECT");
+        if (match({TokenType::OPERATOR}) && tokens[currentTokenIndex].value == "*") {
+            consume(TokenType::OPERATOR, "EXPecTED * ");
+            
+        } else {
             columns.push_back(tokens[currentTokenIndex].value);
-            consume({TokenType::IDENTIFIER}, "Expected a identifier");
+            consume(TokenType::IDENTIFIER, "EXPECTED A IDENTIFIER");
+            while (match({TokenType::COMMA})) {
+                consume(TokenType::COMMA, "EXpected comma");
+                columns.push_back(tokens[currentTokenIndex].value);
+                consume({TokenType::IDENTIFIER}, "Expected a identifier");
+            }
         }
         if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "FROM") {
             consume(TokenType::KEYWORD, "EXPECTE kEY WORD FROM");
@@ -101,7 +102,6 @@ class Parser {
             consume(TokenType::IDENTIFIER, "EXPECTE a table name");
 
         } else {
-            // tokens[currentTokenIndex].value
             __throw_runtime_error("ERROR EXPECTED from ");
         }
 
@@ -112,10 +112,6 @@ class Parser {
         SelectStatement statement(table_name, columns, where_condition);
 
         return make_unique<SelectStatement>(statement);
-
-        // if(match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value=="where"){
-
-        // }
     }
 
     shared_ptr<Expr> parseExpression() { return AND(); }
@@ -348,7 +344,7 @@ class Parser {
 
         consume(TokenType::LITERAL, "EXPECTED Literal ");
 
-        newColumnValues.push_back({columnName,newColumnValue});
+        newColumnValues.push_back({columnName, newColumnValue});
 
         while (match({TokenType::COMMA})) {
             consume({TokenType::COMMA}, "EXPECTED COMMA");
@@ -358,8 +354,7 @@ class Parser {
             newColumnValue = tokens[currentTokenIndex].value;
 
             consume(TokenType::LITERAL, "EXPECTED Literal ");
-            newColumnValues.push_back({columnName,newColumnValue});
-
+            newColumnValues.push_back({columnName, newColumnValue});
         }
 
         if (match({TokenType::KEYWORD}) && tokens[currentTokenIndex].value == "WHERE") {
@@ -367,22 +362,21 @@ class Parser {
             where_condition = parseExpression();
         }
 
-        return make_unique<UpdateStatement>(table_name,newColumnValues, where_condition);
+        return make_unique<UpdateStatement>(table_name, newColumnValues, where_condition);
     }
 
     unique_ptr<BeginStatement> parseBeginStatement() {
-        consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
+        consume(TokenType::KEYWORD, "EXPECTED KEYWORD BEGIN");
         return make_unique<BeginStatement>();
     }
     unique_ptr<CommitStatement> parseCommitStatement() {
-        consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
+        consume(TokenType::KEYWORD, "EXPECTED KEYWORD BEGIN");
         return make_unique<CommitStatement>();
     }
     unique_ptr<RollbackStatement> parseRollbackStatement() {
-        consume(TokenType::KEYWORD,"EXPECTED KEYWORD BEGIN");
+        consume(TokenType::KEYWORD, "EXPECTED KEYWORD BEGIN");
         return make_unique<RollbackStatement>();
     }
-
 
     // optional<Statement> parseDropStatement() {}
     // optional<Statement> parseAlterStatement() {}

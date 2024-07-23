@@ -17,8 +17,10 @@ SelectStatement::SelectStatement(string table_name, vector<string> columns, shar
 void SelectStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<Column> requestedColums;
-    if (columns.size() == 1 && columns[0] == "*") {
-        requestedColums = table->columns;
+    if (columns.empty()) {
+        for (const auto& col : table->columns) {
+            columns.push_back(col.name);
+        }
     }
 
     for (auto column_name : columns) {
@@ -37,11 +39,12 @@ void SelectStatement::execute(Transaction* tx) const {
             return;
         }
     }
+
     vector<vector<string>> data;
     if (where_condition) {
         data = where_condition->execute(tx, requestedColums, table);
     } else {
-        data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
+        data = tx->RangeQuery(NULL, NULL, table->columns, true, true, table);
     }
 
     // cout<<"YOOO: "<<data.size()<<endl;
@@ -96,6 +99,7 @@ void DeleteStatement::execute(Transaction* tx) const {
     vector<Column> requestedColums = table->columns;
 
     vector<string> columns;
+
     for (auto column : requestedColums) {
         columns.push_back(column.name);
     }
@@ -169,16 +173,10 @@ void UpdateStatement::execute(Transaction* tx) const {
 }
 
 BeginStatement::BeginStatement() {}
-void BeginStatement::execute(Transaction* tx) const {
- 
-}
+void BeginStatement::execute(Transaction* tx) const {}
 CommitStatement::CommitStatement() {}
 
-void CommitStatement::execute(Transaction* tx) const {
-
-}
+void CommitStatement::execute(Transaction* tx) const {}
 RollbackStatement::RollbackStatement() {}
 
-void RollbackStatement::execute(Transaction* tx) const {
-
-}
+void RollbackStatement::execute(Transaction* tx) const {}

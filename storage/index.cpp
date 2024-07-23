@@ -9,7 +9,8 @@ Index::Index(string database_name,string table_name,string column_name){
     this->database_name=database_name;
     string primaryIndexFile = getIndexFilePath(database_name, table_name, column_name);
     this->file=new fstream();
-    file->open(primaryIndexFile, ios::out | ios::trunc | ios::in);
+    createFile(primaryIndexFile);
+    file->open(primaryIndexFile, ios::out  | ios::in);
     this->btree = new Btree(this->file);
 
 }

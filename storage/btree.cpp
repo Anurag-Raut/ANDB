@@ -118,6 +118,7 @@ void writePage(BTreeNode* node, Btree* btree) {
     // cout << "WRITING: " << endl;
     char buffer[PAGE_SIZE];
     // Write leaf node flag
+    // cout<<"PALL: "<<node->blocks.size()<<endl;
 
     // cout << "FILE SSIZE: " << file_size << endl;
     uint64_t current_page = getNewIndexPageNumber(btree);
@@ -259,7 +260,7 @@ void updateFlush(BTreeNode* node, Btree* btree) {
 
     // For debugging (optional)
     // cout << "LEAF NODE: " << leafNode << " Number of blocks: " << noOfBlocks << endl;
-    // cout << "BUFFER: " << buffer << endl;
+    // cout << "BUFFER: " << node->pageNumber << endl;
     // S    eek to the end of the file to append the new page
     // index_file->seekp(0, ios::end);
     btree->index_file->seekp(node->pageNumber * PAGE_SIZE, ios::beg);
@@ -345,7 +346,6 @@ pair<optional<Block>, vector<Block>> BTreeNode::deleteHelper(string key, Btree* 
         while (j < blocks.size() && key >= blocks[j].key) {
             j++;
         }
-        // cout<<"FUCKING J: "<<j<<endl;
 
         BTreeNode* childrenNode = btree->readPage(this->children[j]);
         parents.push_back({this, j});
@@ -367,7 +367,6 @@ pair<optional<Block>, vector<Block>> BTreeNode::deleteHelper(string key, Btree* 
 
 pair<BTreeNode*,optional<Block>> Btree::search(string key) {
     BTreeNode* root = this->readPage(0);
-
     if (root == NULL) return {NULL,nullopt};
     return root->search(key, this);
 }
@@ -375,8 +374,8 @@ pair<BTreeNode*,optional<Block>> Btree::search(string key) {
 pair<BTreeNode*,optional<Block>> Btree::beg() {
 
     BTreeNode* node = this->readPage(0);
+
     if(node==NULL){
-        cout<<"CHAL PAHHTU"<<endl;
         return {NULL,nullopt};
 
     }
@@ -386,7 +385,7 @@ pair<BTreeNode*,optional<Block>> Btree::beg() {
     }
 
     Block begBlock =node->blocks[0];
-    cout<<"BEGGGG "<<begBlock.key<<endl;
+    // cout<<"BEGGGG "<<begBlock.key<<endl;
 
     return {node,begBlock};
 
@@ -426,7 +425,7 @@ void Btree::printTree(uint64_t rootPageNumber) {
 void BTreeNode::insertHelper(Block newData, Btree* btree, vector<pair<BTreeNode*, int>>& parents) {
     if (leafNode) {
         // insert
-        // cout << "INSERTING: " << key << endl;
+        // cout << "INSERTING PALL: " << newData.key << endl;
         int j = blocks.size() - 1;
 
         blocks.push_back(newData);
@@ -437,7 +436,7 @@ void BTreeNode::insertHelper(Block newData, Btree* btree, vector<pair<BTreeNode*
             swap(blocks[j + 1], blocks[j]);
             j--;
         }
-        // cout << "j " << j + 2 << endl;
+        // cout << "j " << j + 1 << endl;
         size += blocks[j + 1].size();
         // cout << "BLOCK KEY " << blocks[j + 1].key << " Block number " << blocks[j + 1].blockNumber << " SIZE: " << size << endl;
         if (size > PAGE_SIZE) {
@@ -445,7 +444,7 @@ void BTreeNode::insertHelper(Block newData, Btree* btree, vector<pair<BTreeNode*
             // cout << "BALANCE SIZE: " << size << " " << blocks.size() << endl;
             this->balance(btree, parents);
         }
-        // cout << "children size : " << this->children.size() << endl;
+        // cout << "children size : " << blocks.size() << endl;
 
         updateFlush(this, btree);
 

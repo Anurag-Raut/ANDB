@@ -35,8 +35,8 @@ enum TokenType {
     TRUE,
     PLUS,
     MINUS,
-
     OR,
+    
 
 };
 extern unordered_map<string, TokenType> keywordMap = {

@@ -138,12 +138,13 @@ void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_fi
     for (auto index : indexes) {
         // cout << "INSERTING: " << args[1] << endl;
         index->btree->insert(newData);
+        // pair<BTreeNode*, optional<Block>> SearchResult1 =index->btree->search(newData.key);
+        // cout<<SearchResult1.second.value().key<<endl;
     }
-    if (wal_file) {
-        WAL wal(OPERATION::INSERT, transaction_id, &newData.key, &joinedArgs);
-        wal.write(wal_file);
-        
-    }
+    // if (wal_file) {
+    //     WAL wal(OPERATION::INSERT, transaction_id, &newData.key, &joinedArgs);
+    //     wal.write(wal_file);
+    // }
 }
 
 MetadataDataPage readMetadata(char buffer[PAGE_SIZE]) {
@@ -187,6 +188,7 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     memcpy(buffer, &metadata.noOfBlocks, sizeof(metadata.noOfBlocks));
     memcpy(buffer + sizeof(uint16_t), &newBegOffset, sizeof(newBegOffset));
     memcpy(buffer + sizeof(uint16_t) * 2, &newEndOffset, sizeof(newEndOffset));
+    uint64_t zero=0;
 
     int valueCellSize = val.size();
     // cout << "value cell size: " << valueCellSize << endl;
@@ -196,8 +198,10 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     offset += sizeof(blockOffset);
     memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &valueCellSize, uint16_t(val.size()));
     offset += sizeof(uint16_t(val.size()));
-    cout << "CAS: " << (headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset) << endl;
+    // cout << "CAS: " << (headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset) << endl;
     memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &transaction_id, sizeof(transaction_id));
+    offset+=sizeof(transaction_id);
+    memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &zero, sizeof(zero));
 
     // Copy the actual value into the page
     memcpy(buffer + blockOffset, val.c_str(), val.size());
@@ -315,7 +319,7 @@ void deleteData(uint64_t pageNumber, uint16_t blockNumber, fstream* data_file, f
     int ogNoOfBlocks = metadata.noOfBlocks;
     int ogEndOffset = metadata.endOffset;
     // char newBuffer[PAGE_SIZE];
-    cout << "DELETE : " << headerSize + (blockNumber * Block_HEADER_SIZE) + ((2 * sizeof(uint16_t)) + sizeof(uint64_t)) << endl;
+    // cout << "DELETE : " << headerSize + (blockNumber * Block_HEADER_SIZE) + ((2 * sizeof(uint16_t)) + sizeof(uint64_t)) << endl;
 
     memcpy(buffer + headerSize + (blockNumber * Block_HEADER_SIZE) + ((2 * sizeof(uint16_t)) + sizeof(uint64_t)), &transaction_id,
            sizeof(transaction_id));
@@ -399,11 +403,11 @@ pair<optional<string>, pair<uint64_t, uint64_t>> Table::readValue(uint64_t pageN
     uint16_t sizeOfValueCell;
 
     memcpy(&sizeOfValueCell, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + offset, sizeof(uint16_t));
-    cout << "VAL SIZE " << sizeOfValueCell << endl;
+    // cout << "VAL SIZE " << sizeOfValueCell << endl;
     offset += sizeof(sizeOfValueCell);
     uint64_t t_ins, t_del;
     memcpy(&t_ins, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + offset, sizeof(t_ins));
-    cout << "T INS : " << headerSize + (Block_HEADER_SIZE * blockNumber) + offset << endl;
+    // cout << "T INS : " << headerSize + (Block_HEADER_SIZE * blockNumber) + offset << endl;
     offset += sizeof(t_ins);
     memcpy(&t_del, buffer + headerSize + (Block_HEADER_SIZE * blockNumber) + offset, sizeof(t_del));
 
@@ -483,7 +487,7 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
-        cout << "DRAMME" << endl;
+      
 
         cout << "KEY NOT FOUND" << endl;
         return rows;
@@ -512,12 +516,13 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
         uint64_t t_ins = read_value_data.second.first;
         uint64_t t_del = read_value_data.second.second;
 
-        cout << "FOUND VALUE :" << t_ins << " " << t_del << endl;
+        // cout << "FOUND VALUE :" << t_ins << " " << t_del << endl;
         vector<string> rowData = this->Deconstruct(foundValue.value(), types);
         // cout << "ROW DATA:" << rowData[0] << endl;
         // if(){
         // if(tx->IsVisible(t_ins,t_del)){
         // }
+        // cout<<"HELLOOOO: "<< currentNode->blocks.size()<<endl;
         if (key1 && key == *key1 && includeKey1) {
             rows.push_back({rowData, {t_ins, t_del}});
         } else if (key2 && key == *key2 && includeKey2) {
@@ -531,7 +536,7 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
         } else if (!key1 || !key2) {
             rows.push_back({rowData, {t_ins, t_del}});
         }
-        cout << "HELLO " << rows.size() << endl;
+        // cout << "HELLO " << rows.size() << endl;
 
         if ((i + 1) < currentNode->blocks.size()) {
             i = i + 1;
@@ -584,18 +589,18 @@ string Table::Search(string key, string column_name, uint64_t transaction_id) {
 }
 
 void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
-    // cout<<"INSANE: "<<args[primary_key_index]<<endl;
+    cout<<"INSANE: "<<transaction_id<<endl;
     Delete(args[primary_key_index], transaction_id, wal_file);
     Insert(args, transaction_id, wal_file);
 }
 
 void Table::Delete(string key, uint64_t transaction_id, fstream* wal_file) {
-    cout << "OH YEAHHH BABBYY" << endl;
+    // cout << "OH YEAHHH BABBYY" << endl;
     vector<Block> deletedBlocks;
     for (auto index : indexes) {
         deletedBlocks = index->btree->deleteNode(key);
     }
-    cout << "OH YEAHHH " << endl;
+    // cout << "OH YEAHHH " << endl;
 
     if (deletedBlocks.size() > 0) {
         for (auto delBlock : deletedBlocks) {
@@ -631,7 +636,7 @@ void Table::CreateIndex(string column_name, uint64_t transaction_id) {
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
-        cout << "DRAMME" << endl;
+        // cout << "DRAMME" << endl;
 
         cout << "KEY NOT FOUND" << endl;
         return;

@@ -4,9 +4,10 @@
 #include <string>
 #include <thread>  // For std::this_thread::sleep_for
 
+// #include "storage/include/database.hpp"
+// #include "storage/include/transaction.hpp"
 #include "parser/interpreter.cpp"
-#include "storage/database.cpp"
-#include "storage/transaction.cpp"
+
 
 using namespace std;
 
@@ -77,12 +78,13 @@ void test() {
     // table->Print(table->columns[table->primary_key_index].name);
     string query = R"(
         CREATE TABLE newtable (name STRING , age INT, salary INT)
-                BEGIN
+  
         
         INSERT INTO newtable VALUES("key1" , 10 , 5000)
+        
         INSERT INTO newtable VALUES("key2" , 20 , 2000)
         INSERT INTO newtable VALUES("key3" , 30 , 3000)
-        ROLLBACK
+        SELECT age,name FROM newtable
  
     
      
@@ -94,19 +96,19 @@ void test() {
 
     Interpreter interpreter(database, query);
 
-    string query2 = R"(
-                BEGIN
+    // string query2 = R"(
+    //             BEGIN
         
 
  
-        SELECT age,name FROM newtable
-        COMMIT
+    //     SELECT age,name FROM newtable
+    //     COMMIT
      
 
 
-        )";
+    //     )";
 
-    Interpreter interpreter2(database, query2);
+    // Interpreter interpreter2(database, query2);
 
     cout << "All tests passed!" << endl;
 }

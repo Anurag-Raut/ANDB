@@ -4,6 +4,8 @@
 #include <string>
 #include <cstdint> 
 #include <iostream>
+#include<vector>
+#include<fstream>
 
 using namespace std;
 extern const unsigned int PAGE_SIZE = 200;  
@@ -96,6 +98,27 @@ vector<string> splitString(const string& str, char delimiter) {
 
     return tokens;
 }
+void createFile(const std::string& fileName) {
+    // Try to open the file for reading
+    std::ifstream infile(fileName);
+    
+    if (infile.is_open()) {
+        // File exists and is open for reading
+        std::cout << "File already exists: " << fileName << std::endl;
+        infile.close();
+    } else {
+        // File does not exist, so create it
+        std::ofstream outfile(fileName);
+        if (outfile.is_open()) {
+            std::cout << "File created successfully: " << fileName << std::endl;
+            outfile.close();
+        } else {
+            std::cerr << "Failed to create the file: " << fileName << std::endl;
+        }
+    }
+}
+
+
 
 
 

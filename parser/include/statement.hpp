@@ -21,7 +21,8 @@ class Statement {
 class SelectStatement : public Statement {
    public:
     string table_name;
-    vector<string> columns;
+    mutable vector<string> columns;
+
     shared_ptr<Expr> where_condition;
 
     SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition);
