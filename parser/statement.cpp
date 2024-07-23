@@ -23,12 +23,11 @@ void SelectStatement::execute(Transaction* tx) const {
             columns.push_back(col.name);
         }
     } else {
+        cout<<"COLUMNS SIZE: "<<columns.size()<<endl;
         for (auto column_name : columns) {
             bool found = 0;
-            // cout<<"HEHE"<<endl;
-            // cout<<column_name<<endl;
+
             for (auto column : table->columns) {
-                // cout<<column.name<<endl;
                 if (column.name == column_name) {
                     found = 1;
                     requestedColums.push_back(column);
@@ -45,7 +44,7 @@ void SelectStatement::execute(Transaction* tx) const {
     if (where_condition) {
         data = where_condition->execute(tx, requestedColums, table);
     } else {
-        data = tx->RangeQuery(NULL, NULL, table->columns, true, true, table);
+        data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
 
     // cout<<"YOOO: "<<data.size()<<endl;

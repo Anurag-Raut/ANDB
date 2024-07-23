@@ -589,7 +589,6 @@ string Table::Search(string key, string column_name, uint64_t transaction_id) {
 }
 
 void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
-    cout<<"INSANE: "<<transaction_id<<endl;
     Delete(args[primary_key_index], transaction_id, wal_file);
     Insert(args, transaction_id, wal_file);
 }

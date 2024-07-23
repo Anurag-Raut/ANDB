@@ -84,6 +84,7 @@ void test() {
         
         INSERT INTO newtable VALUES("key2" , 20 , 2000)
         INSERT INTO newtable VALUES("key3" , 30 , 3000)
+        INSERT INTO newtable VALUES("key4" , 30 , 3000)
         SELECT age,name FROM newtable
  
     
