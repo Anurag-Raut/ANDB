@@ -26,7 +26,6 @@ class SelectStatement : public Statement {
     shared_ptr<Expr> where_condition;
 
     SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition);
-//    void print()const override;
 
     void execute(Transaction* tx) const override;
 
@@ -38,7 +37,7 @@ class CreateStatement : public Statement {
     vector<Column> columns;
 
     CreateStatement(string table_name, vector<Column> columns);
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
@@ -51,7 +50,7 @@ class InsertStatement : public Statement {
     vector<string> values;
 
     InsertStatement(string table_name, vector<string> columns,vector<string> values);
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
@@ -63,7 +62,7 @@ class DeleteStatement : public Statement {
     shared_ptr<Expr> where_condition;
 
     DeleteStatement(string table_name,shared_ptr<Expr>  where_condition);
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
@@ -77,7 +76,7 @@ class UpdateStatement : public Statement {
     shared_ptr<Expr> where_condition;
 
     UpdateStatement(string table_name,vector<pair<string,string>> newColumnValues,shared_ptr<Expr>  where_condition);
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
@@ -90,7 +89,7 @@ class BeginStatement : public Statement {
     shared_ptr<Expr> where_condition;
 
     BeginStatement();
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
@@ -103,7 +102,7 @@ class CommitStatement : public Statement {
     shared_ptr<Expr> where_condition;
 
     CommitStatement();
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
@@ -115,7 +114,7 @@ class RollbackStatement : public Statement {
     shared_ptr<Expr> where_condition;
 
     RollbackStatement();
-    // void print() const override;
+
 
     void execute(Transaction* tx) const override;
 
