@@ -18,25 +18,26 @@ void SelectStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<Column> requestedColums;
     if (columns.empty()) {
-        for (const auto& col : table->columns) {
+        for (auto col : table->columns) {
+            requestedColums.push_back(col);
             columns.push_back(col.name);
         }
-    }
-
-    for (auto column_name : columns) {
-        bool found = 0;
-        // cout<<"HEHE"<<endl;
-        // cout<<column_name<<endl;
-        for (auto column : table->columns) {
-            // cout<<column.name<<endl;
-            if (column.name == column_name) {
-                found = 1;
-                requestedColums.push_back(column);
+    } else {
+        for (auto column_name : columns) {
+            bool found = 0;
+            // cout<<"HEHE"<<endl;
+            // cout<<column_name<<endl;
+            for (auto column : table->columns) {
+                // cout<<column.name<<endl;
+                if (column.name == column_name) {
+                    found = 1;
+                    requestedColums.push_back(column);
+                }
             }
-        }
-        if (found == 0) {
-            cout << "ERORR WHILE PARSING COLUMNS DATA";
-            return;
+            if (found == 0) {
+                cout << "ERORR WHILE PARSING COLUMNS DATA";
+                return;
+            }
         }
     }
 
