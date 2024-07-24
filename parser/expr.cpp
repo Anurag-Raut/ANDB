@@ -39,7 +39,6 @@ vector<vector<string>> BinaryExpr::execute(Transaction* tx ,vector<Column> reque
     } else {
         Literal = dynamic_pointer_cast<LiteralExpr>(this->left);
     }
-    // cout << "HELLO" << endl;
 
     if (op.value == "<") {
         return tx->RangeQuery(NULL, &Literal->literal, requestedColums, true, false,table);

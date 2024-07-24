@@ -23,7 +23,7 @@ void SelectStatement::execute(Transaction* tx) const {
             columns.push_back(col.name);
         }
     } else {
-        cout<<"COLUMNS SIZE: "<<columns.size()<<endl;
+        // cout<<"COLUMNS SIZE: "<<columns.size()<<endl;
         for (auto column_name : columns) {
             bool found = 0;
 

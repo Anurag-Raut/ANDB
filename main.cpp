@@ -7,8 +7,8 @@
 #include "storage/include/globals.hpp"
 #include "storage/database.cpp"
 #include "storage/transaction.cpp"
-#include "repl.cpp"
-// #include "btree_tests.cpp"
+// #include "repl.cpp"
+#include "btree_tests.cpp"
 
 int main(){
 
@@ -21,8 +21,8 @@ int main(){
         }
     }
     
-    // test();
-    repl();
+    test();
+    // repl();
     
     
 

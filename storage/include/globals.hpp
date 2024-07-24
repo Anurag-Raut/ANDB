@@ -104,13 +104,13 @@ void createFile(const std::string& fileName) {
     
     if (infile.is_open()) {
         // File exists and is open for reading
-        std::cout << "File already exists: " << fileName << std::endl;
+        // std::cout << "File already exists: " << fileName << std::endl;
         infile.close();
     } else {
         // File does not exist, so create it
         std::ofstream outfile(fileName);
         if (outfile.is_open()) {
-            std::cout << "File created successfully: " << fileName << std::endl;
+            // std::cout << "File created successfully: " << fileName << std::endl;
             outfile.close();
         } else {
             std::cerr << "Failed to create the file: " << fileName << std::endl;

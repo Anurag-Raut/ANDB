@@ -106,7 +106,7 @@ bool parseArgument(const string& arg, const string& type) {
 
 void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
     if (args.size() != columns.size()) {
-        cout << "COLUMNS SIZE: " << columns.size() << " ARgs Size: " << args.size() << endl;
+        // cout << "COLUMNS SIZE: " << columns.size() << " ARgs Size: " << args.size() << endl;
         cout << "ERROR : args size not equal to column data";
         return;
     }
@@ -528,12 +528,7 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
         } else if (key2 && key == *key2 && includeKey2) {
             rows.push_back({rowData, {t_ins, t_del}});
 
-        } else if (key1 && *key1 != key) {
-            rows.push_back({rowData, {t_ins, t_del}});
-
-        } else if (key2 && *key2 != key) {
-            rows.push_back({rowData, {t_ins, t_del}});
-        } else if (!key1 || !key2) {
+        }  else if (!key1 || !key2) {
             rows.push_back({rowData, {t_ins, t_del}});
         }
         // cout << "HELLO " << rows.size() << endl;
@@ -542,6 +537,7 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
             i = i + 1;
         } else {
             if (currentNode->nextSibling == -1) {
+                cout<<"JJ"<<endl;
                 return rows;
             }
             // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;

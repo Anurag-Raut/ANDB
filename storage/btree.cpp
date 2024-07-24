@@ -725,7 +725,7 @@ pair<BTreeNode*,optional<Block>> BTreeNode::search(string key, Btree* btree) {
         while (i < blocks.size() && key > blocks[i].key) i++;
 
     } else {
-        while (i < blocks.size() && key >= blocks[i].key) i++;
+        while (i < blocks.size() && key > blocks[i].key) i++;
     }
     // cout<<"THIS IS I: "<<i<<endl;
     if (leafNode && i < blocks.size() && blocks[i].key == key) {
