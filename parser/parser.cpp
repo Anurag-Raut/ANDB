@@ -117,7 +117,7 @@ class Parser {
     shared_ptr<Expr> parseExpression() { return AND(); }
     shared_ptr<Expr> AND() {
         shared_ptr<Expr> left = OR();
-        if (match({TokenType::EQUAL_EQUAL, TokenType::BANG_EQUAL})) {
+        if (match({TokenType::AND})) {
             Token op = tokens[currentTokenIndex];
             currentTokenIndex++;
             shared_ptr<Expr> right = AND();
@@ -130,7 +130,7 @@ class Parser {
 
     shared_ptr<Expr> OR() {
         shared_ptr<Expr> left = comparison();
-        if (match({TokenType::EQUAL_EQUAL, TokenType::BANG_EQUAL})) {
+        if (match({TokenType::OR})) {
             Token op = tokens[currentTokenIndex];
             currentTokenIndex++;
             shared_ptr<Expr> right = OR();

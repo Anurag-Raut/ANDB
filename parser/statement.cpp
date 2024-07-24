@@ -46,6 +46,9 @@ void SelectStatement::execute(Transaction* tx) const {
     } else {
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
+    
+
+
 
     // cout<<"YOOO: "<<data.size()<<endl;
 

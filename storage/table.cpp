@@ -103,6 +103,82 @@ bool parseArgument(const string& arg, const string& type) {
     }
     return false;  // Unknown type
 }
+vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true,
+                                                                         bool includeKey2 = true, string column_name = "") {
+    vector<pair<vector<string>, pair<uint64_t, uint64_t>>> rows;
+    Index* index = this->getIndex(column_name);
+    if (!index) {
+        return rows;
+    }
+
+    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? index->btree->beg() : index->btree->search(*key1);
+    BTreeNode* currentNode = SearchResult1.first;
+    optional<Block> optData = SearchResult1.second;
+
+    if (!optData.has_value()) {
+        cout << "KEY NOT FOUND" << endl;
+        return rows;
+    }
+    if (currentNode == NULL) {
+        cout << "EMPTY";
+        return rows;
+    }
+    Block data = optData.value();
+    string key = data.key;
+    uint64_t pgNumber = data.pageNumber.value();
+    uint16_t blNumber = data.blockNumber.value();
+    int i = 0;
+    // cout<<"hello"<<endl;
+    while (key1 && i < currentNode->blocks.size() && currentNode->blocks[i].key < *key1) {
+        i++;
+    }
+
+    // cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
+    while ((key2) ? (key <= *key2) : (currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
+        blNumber = currentNode->blocks[i].blockNumber.value();
+        // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
+        pgNumber = currentNode->blocks[i].pageNumber.value();
+        pair<optional<string>, pair<uint64_t, uint64_t>> read_value_data = readValue(pgNumber, blNumber);
+        optional<string> foundValue = read_value_data.first;
+        uint64_t t_ins = read_value_data.second.first;
+        uint64_t t_del = read_value_data.second.second;
+
+        // cout << "FOUND VALUE :" << t_ins << " " << t_del << endl;
+        vector<string> rowData = this->Deconstruct(foundValue.value(), types);
+        // cout << "ROW DATA:" << rowData[0] << endl;
+        // if(){
+        // if(tx->IsVisible(t_ins,t_del)){
+        // }
+        // cout<<"HELLOOOO: "<< currentNode->blocks.size()<<endl;
+        if (key1 && key == *key1 && includeKey1) {
+            rows.push_back({rowData, {t_ins, t_del}});
+        } else if (key2 && key == *key2 && includeKey2) {
+            rows.push_back({rowData, {t_ins, t_del}});
+
+        } else if (!key1 || !key2) {
+            rows.push_back({rowData, {t_ins, t_del}});
+        }
+        // cout << "HELLO " << rows.size() << endl;
+
+        if ((i + 1) < currentNode->blocks.size()) {
+            i = i + 1;
+        } else {
+            if (currentNode->nextSibling == -1) {
+                cout << "JJ" << endl;
+                return rows;
+            }
+            // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
+            BTreeNode* nextNode = index->btree->readPage(currentNode->nextSibling);
+            // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
+            i = 0;
+            // cout<<"AVVEE BHAIII :"<<nextNode->pageNumber<<endl;
+            currentNode = nextNode;
+        }
+        key = currentNode->blocks[i].key;
+    }
+
+    return rows;
+}
 
 void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
     if (args.size() != columns.size()) {
@@ -112,7 +188,15 @@ void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_fi
     }
 
     // type checking
+    string key=args[this->primary_key_index];
 
+    vector<pair<vector<string>, pair<uint64_t, uint64_t>>> foundRows =
+        this->RangeQuery(&key, &key, this->columns, true, true);
+        cout<<"ENDL: "<<args[this->primary_key_index]<<endl;
+    if (foundRows.size() > 0) {
+        cout << "ROW ALREADY EXISTS" << endl;
+        return;
+    }
     for (int i = 0; i < args.size(); i++) {
         string arg = args[i];
         string type = columns[i].type;
@@ -188,7 +272,7 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     memcpy(buffer, &metadata.noOfBlocks, sizeof(metadata.noOfBlocks));
     memcpy(buffer + sizeof(uint16_t), &newBegOffset, sizeof(newBegOffset));
     memcpy(buffer + sizeof(uint16_t) * 2, &newEndOffset, sizeof(newEndOffset));
-    uint64_t zero=0;
+    uint64_t zero = 0;
 
     int valueCellSize = val.size();
     // cout << "value cell size: " << valueCellSize << endl;
@@ -200,7 +284,7 @@ int insertValueToDataFile(string val, uint64_t pageNumber, fstream* data_file, f
     offset += sizeof(uint16_t(val.size()));
     // cout << "CAS: " << (headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset) << endl;
     memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &transaction_id, sizeof(transaction_id));
-    offset+=sizeof(transaction_id);
+    offset += sizeof(transaction_id);
     memcpy(buffer + headerSize + ((metadata.noOfBlocks - 1) * (Block_HEADER_SIZE)) + offset, &zero, sizeof(zero));
 
     // Copy the actual value into the page
@@ -444,6 +528,24 @@ vector<string> Table::Deconstruct(string row, vector<Column> types) {
     return data;
 }
 
+vector<string> Table::Deconstruct(vector<string> rowValues, vector<Column> types) {
+    unordered_map<string, string> rowData;
+    string column_data;
+
+    for (int j = 0; j < columns.size(); j++) {
+        // cout<<"name: "<<columns[j].name<<" VALue: "<<rowValues[j]<<endl;
+        rowData[columns[j].name] = rowValues[j];
+    }
+    vector<string> data;
+    // cout<<"DELUSTIONAL: "<<types.size()<<endl;
+    for (int i = 0; i < types.size(); i++) {
+        Column type = types[i];
+        data.push_back(rowData[type.name]);
+    }
+
+    return data;
+}
+
 Index* Table::getIndex(string column_name) {
     Index* index;
 
@@ -474,84 +576,7 @@ Index* Table::getIndex(string column_name) {
     return index;
 }
 
-vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true,
-                                                                         bool includeKey2 = true, string column_name = "") {
-    vector<pair<vector<string>, pair<uint64_t, uint64_t>>> rows;
-    Index* index = this->getIndex(column_name);
-    if (!index) {
-        return rows;
-    }
 
-    pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? index->btree->beg() : index->btree->search(*key1);
-    BTreeNode* currentNode = SearchResult1.first;
-    optional<Block> optData = SearchResult1.second;
-
-    if (!optData.has_value()) {
-      
-
-        cout << "KEY NOT FOUND" << endl;
-        return rows;
-    }
-    if (currentNode == NULL) {
-        cout << "EMPTY";
-        return rows;
-    }
-    Block data = optData.value();
-    string key = data.key;
-    uint64_t pgNumber = data.pageNumber.value();
-    uint16_t blNumber = data.blockNumber.value();
-    int i = 0;
-    // cout<<"hello"<<endl;
-    while (key1 && i < currentNode->blocks.size() && currentNode->blocks[i].key < *key1) {
-        i++;
-    }
-
-    // cout<<(currentNode->nextSibling!=-1 || (currentNode->nextSibling==-1 && i<currentNode->blocks.size()))<<endl;
-    while ((key2) ? (key <= *key2) : (currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
-        blNumber = currentNode->blocks[i].blockNumber.value();
-        // cout<<"BL NUMBER HEHEHE : "<<blNumber<<endl;
-        pgNumber = currentNode->blocks[i].pageNumber.value();
-        pair<optional<string>, pair<uint64_t, uint64_t>> read_value_data = readValue(pgNumber, blNumber);
-        optional<string> foundValue = read_value_data.first;
-        uint64_t t_ins = read_value_data.second.first;
-        uint64_t t_del = read_value_data.second.second;
-
-        // cout << "FOUND VALUE :" << t_ins << " " << t_del << endl;
-        vector<string> rowData = this->Deconstruct(foundValue.value(), types);
-        // cout << "ROW DATA:" << rowData[0] << endl;
-        // if(){
-        // if(tx->IsVisible(t_ins,t_del)){
-        // }
-        // cout<<"HELLOOOO: "<< currentNode->blocks.size()<<endl;
-        if (key1 && key == *key1 && includeKey1) {
-            rows.push_back({rowData, {t_ins, t_del}});
-        } else if (key2 && key == *key2 && includeKey2) {
-            rows.push_back({rowData, {t_ins, t_del}});
-
-        }  else if (!key1 || !key2) {
-            rows.push_back({rowData, {t_ins, t_del}});
-        }
-        // cout << "HELLO " << rows.size() << endl;
-
-        if ((i + 1) < currentNode->blocks.size()) {
-            i = i + 1;
-        } else {
-            if (currentNode->nextSibling == -1) {
-                cout<<"JJ"<<endl;
-                return rows;
-            }
-            // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
-            BTreeNode* nextNode = index->btree->readPage(currentNode->nextSibling);
-            // cout<<"AVVVEEEE: "<<nextNode->blocks[0].key<<endl;
-            i = 0;
-            // cout<<"AVVEE BHAIII :"<<nextNode->pageNumber<<endl;
-            currentNode = nextNode;
-        }
-        key = currentNode->blocks[i].key;
-    }
-
-    return rows;
-}
 
 string Table::Search(string key, string column_name, uint64_t transaction_id) {
     Index* index = this->getIndex(column_name);

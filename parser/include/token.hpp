@@ -36,6 +36,7 @@ enum TokenType {
     PLUS,
     MINUS,
     OR,
+    NOT
     
 
 };
@@ -47,7 +48,7 @@ extern unordered_map<string, TokenType> keywordMap = {
     {"LEFT", TokenType::KEYWORD},   {"RIGHT", TokenType::KEYWORD},  {"FULL", TokenType::KEYWORD},     {"ON", TokenType::KEYWORD},
     {"GROUP", TokenType::KEYWORD},  {"BY", TokenType::KEYWORD},     {"ORDER", TokenType::KEYWORD},    {"HAVING", TokenType::KEYWORD},
     {"UNION", TokenType::KEYWORD},  {"ALL", TokenType::KEYWORD},    {"DISTINCT", TokenType::KEYWORD}, {"AS", TokenType::KEYWORD},
-    {"and", TokenType::KEYWORD},    {"or", TokenType::KEYWORD},     {"not", TokenType::KEYWORD},      {"NULL", TokenType::KEYWORD},
+    {"AND", TokenType::AND},    {"OR", TokenType::OR},     {"NOT", TokenType::NOT},      {"NULL", TokenType::KEYWORD},
     {"IS", TokenType::KEYWORD},     {"IN", TokenType::KEYWORD},     {"BETWEEN", TokenType::KEYWORD},  {"LIKE", TokenType::KEYWORD},
     {"LIMIT", TokenType::KEYWORD},  {"OFFSET", TokenType::KEYWORD},
     {"INT",TokenType::KEYWORD},
