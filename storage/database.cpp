@@ -40,7 +40,7 @@ void LoadTables(Database* database) {
 
         int primary_key_index = 0;
         // cout << "tableName: " << table_name << endl;
-        Table* table = new Table(table_name, types, names, database->name, database->data_file, database->page_file, primary_key_index);
+        Table* table = new Table(table_name, types, names, database, database->data_file, database->page_file, primary_key_index);
         database->tables[table_name] = table;
     }
 }
@@ -127,7 +127,7 @@ Database::Database(string name) {
 }
 
 Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
-    Table* newTable = new Table(table_name, types, names, this->name, data_file, page_file, primary_key_index);
+    Table* newTable = new Table(table_name, types, names, this, data_file, page_file, primary_key_index);
     metadata_file->seekp(0, ios::end);
     metadata_file->seekg(0, ios::end);
 
@@ -187,4 +187,43 @@ TRANSACTION_STATUS Database::ReadTransactionLog(uint64_t transaction_id) {
     memcpy(&status, buffer + sizeof(transaction_id), sizeof(status));
     // cout<<"status_int: "<<int(status)<<endl;
     return status;
+}
+
+bool Database::IsVisible(uint64_t t_ins, uint64_t t_del,uint64_t transaction_id) {
+   
+    bool isVisible = false;
+    if (t_ins == transaction_id) {
+        isVisible = true;
+    }
+    if (t_del == transaction_id) {
+        isVisible = false;
+    }
+    if (t_del == transaction_id) {
+        return isVisible;
+    }
+    bool isInsertedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_ins) != active_transactions.end());
+    bool isDeletedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_del) != active_transactions.end());
+    // cout<<"t del: "<<t_del<<" "<<"t_ins: "<<t_ins<<endl;
+    TRANSACTION_STATUS del_status = this->ReadTransactionLog(t_del);
+    TRANSACTION_STATUS ins_status = this->ReadTransactionLog(t_ins);
+    // cout<<"INSERTED_STATUS: " << uint8_t(ins_status)<<endl;
+    //     cout<<"DELETED_STATUS: "<< uint8_t(del_status)<<endl;
+
+    if (!isInsertedByActiveTransaction) {
+        isVisible = true;
+    }
+
+    if (!isDeletedByActiveTransaction && t_del != 0) {
+        isVisible = false;
+    }
+
+    if (del_status == TRANSACTION_STATUS::ABORTED) {
+        // cout<<"SASAS"<<endl;
+        isVisible = true;
+    }
+    if (ins_status == TRANSACTION_STATUS::ABORTED) {
+        isVisible = false;
+    }
+
+    return isVisible;
 }

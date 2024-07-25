@@ -44,7 +44,7 @@ struct PageMap {
         offset += sizeof(this->noOfBlocksAvailable);
     }
 };
-Table::Table(string table_name, vector<string> types, vector<string> names, string database_name, fstream* data_file, fstream* page_file,
+Table::Table(string table_name, vector<string> types, vector<string> names, Database* database, fstream* data_file, fstream* page_file,
              int primary_key_index) {
     if (types.size() != names.size()) {
         return;
@@ -54,18 +54,18 @@ Table::Table(string table_name, vector<string> types, vector<string> names, stri
         this->columns.push_back({names[i], types[i]});
         // cout<<"column: "<<columns[i].name<<" "<<columns[i].type<<endl;
     }
-    std::filesystem::path tableDir = BASE_DIRECTORY + "/" + database_name + "/" + table_name;
+    std::filesystem::path tableDir = BASE_DIRECTORY + "/" + database->name + "/" + table_name;
     if (!std::filesystem::exists(tableDir)) {
         std::filesystem::create_directories(tableDir);
     }
 
-    Index* index = new Index(database_name, table_name, columns[primary_key_index].name);
+    Index* index = new Index(database->name, table_name, columns[primary_key_index].name);
 
     indexes.push_back(index);
 
     // Debugging output
     this->table_name = table_name;
-    this->database_name = database_name;
+    this->database = database;
 
     this->data_file = data_file;
     this->page_file = page_file;
@@ -103,12 +103,14 @@ bool parseArgument(const string& arg, const string& type) {
     }
     return false;  // Unknown type
 }
-vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1 = true,
-                                                                         bool includeKey2 = true, string column_name = "") {
+vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, uint64_t transaction_id, bool includeKey1,
+                                         bool includeKey2, string column_name = "") {
+    vector<vector<string>> transactionVisibleRows;
+
     vector<pair<vector<string>, pair<uint64_t, uint64_t>>> rows;
     Index* index = this->getIndex(column_name);
     if (!index) {
-        return rows;
+        return transactionVisibleRows;
     }
 
     pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? index->btree->beg() : index->btree->search(*key1);
@@ -117,11 +119,11 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
 
     if (!optData.has_value()) {
         cout << "KEY NOT FOUND" << endl;
-        return rows;
+        return transactionVisibleRows;
     }
     if (currentNode == NULL) {
         cout << "EMPTY";
-        return rows;
+        return transactionVisibleRows;
     }
     Block data = optData.value();
     string key = data.key;
@@ -164,8 +166,7 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
             i = i + 1;
         } else {
             if (currentNode->nextSibling == -1) {
-                cout << "JJ" << endl;
-                return rows;
+                break;
             }
             // cout<<"NEXT SIBLING: "<<currentNode->nextSibling<<endl;
             BTreeNode* nextNode = index->btree->readPage(currentNode->nextSibling);
@@ -177,10 +178,19 @@ vector<pair<vector<string>, pair<uint64_t, uint64_t>>> Table::RangeQuery(string*
         key = currentNode->blocks[i].key;
     }
 
-    return rows;
+    // cout<<"ROWS: "<<rows.size()<<endl;
+    for (auto row : rows) {
+        // cout<<"row first : "<<row.first[1]<<endl;
+        if (database->IsVisible(row.second.first, row.second.second, transaction_id)) {
+            transactionVisibleRows.push_back(row.first);
+        }
+    }
+
+    return transactionVisibleRows;
 }
 
 void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
+    // cout << "LES F GOO" << endl;
     if (args.size() != columns.size()) {
         // cout << "COLUMNS SIZE: " << columns.size() << " ARgs Size: " << args.size() << endl;
         cout << "ERROR : args size not equal to column data";
@@ -188,11 +198,12 @@ void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_fi
     }
 
     // type checking
-    string key=args[this->primary_key_index];
+  
+    string key = args[this->primary_key_index];
 
-    vector<pair<vector<string>, pair<uint64_t, uint64_t>>> foundRows =
-        this->RangeQuery(&key, &key, this->columns, true, true);
-        cout<<"ENDL: "<<args[this->primary_key_index]<<endl;
+    vector<vector<string>> foundRows = this->RangeQuery(&key, &key, this->columns,transaction_id, true, true);
+    // cout << "ENDL: " << args[this->primary_key_index] << endl;
+  
     if (foundRows.size() > 0) {
         cout << "ROW ALREADY EXISTS" << endl;
         return;
@@ -215,7 +226,6 @@ void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_fi
         ss << args[i];
     }
     string joinedArgs = ss.str();
-
     Block newData = writeData(args[primary_key_index], joinedArgs, transaction_id);
     // cout<<"key: "<<newData.key<<"BLOCK: " <<newData.blockNumber.value()<<endl;
 
@@ -576,8 +586,6 @@ Index* Table::getIndex(string column_name) {
     return index;
 }
 
-
-
 string Table::Search(string key, string column_name, uint64_t transaction_id) {
     Index* index = this->getIndex(column_name);
     if (!index) {
@@ -646,7 +654,7 @@ void Table::CreateIndex(string column_name, uint64_t transaction_id) {
         }
     }
     cout << "EASSYYY ohh" << endl;
-    Index* index = new Index(database_name, table_name, column_name);
+    Index* index = new Index(database->name, table_name, column_name);
     indexes.push_back(index);
     Index* primaryIndex = getIndex("");
     cout << primaryIndex->columnName << endl;

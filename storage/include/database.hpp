@@ -99,6 +99,8 @@ class Database {
     Table *CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_indexs);
     void UpdateTransactionLog(uint64_t transaction_id, TRANSACTION_STATUS status);
     TRANSACTION_STATUS ReadTransactionLog(uint64_t transaction_id);
-
+    bool IsVisible(uint64_t t_ins, uint64_t t_del,uint64_t transaction_id);
     void writeWAL(OPERATION operation, uint64_t transaction_id, const string *key, const string *value);
 };
+
+

@@ -8,7 +8,6 @@
 // #include "storage/include/transaction.hpp"
 #include "parser/interpreter.cpp"
 
-
 using namespace std;
 
 // void testInsertAndSearch(Transaction* tx) {
@@ -85,7 +84,7 @@ void test() {
         INSERT INTO newtable VALUES("key2" , 20 , 2000)
         INSERT INTO newtable VALUES("key3" , 30 , 3000)
         INSERT INTO newtable VALUES("key4" , 30 , 3000)
-        SELECT age,name FROM newtable WHERE name="key3" OR name="key2"
+        SELECT * FROM newtable
  
     
      
@@ -97,17 +96,15 @@ void test() {
 
     Interpreter interpreter(database, query);
 
-    // string query2 = R"(
-    //             BEGIN
-        
+    string query2 = R"(
+        SELECT * FROM newtable 
 
- 
-    //     SELECT age,name FROM newtable
-    //     COMMIT
-     
+ UPDATE newtable SET salary = 70000, age = 31 WHERE name = "key1"
+    
+     SELECT * FROM newtable
 
 
-    //     )";
+        )";
 
     // Interpreter interpreter2(database, query2);
 

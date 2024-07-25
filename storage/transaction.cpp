@@ -30,21 +30,15 @@ void Transaction::Delete(string key, Table* table) { table->Delete(key, transact
 void Transaction::CreateIndex(string column_name, Table* table) { table->CreateIndex(column_name, transaction_id); }
 vector<vector<string>> Transaction::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1, bool includeKey2, Table* table,
                                                string column_name) {
-    vector<pair<vector<string>, pair<uint64_t, uint64_t>>> rows = table->RangeQuery(key1, key2, types, includeKey1, includeKey2, column_name);
-    vector<vector<string>> transactionVisibleRows;
+    vector<vector<string>> rows = table->RangeQuery(key1, key2, types,transaction_id, includeKey1, includeKey2, column_name);
     // cout<<"ROWS: "<<rows.size()<<endl;
-    for (auto row : rows) {
-        // cout<<"row first : "<<row.first[1]<<endl;
-        if (this->IsVisible(row.second.first, row.second.second)) {
-            transactionVisibleRows.push_back(row.first);
-        }
-    }
+   
 
-    return transactionVisibleRows;
+    return rows;
 }
 
 Table* Transaction::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
-    Table* newTable = new Table(table_name, types, names, database->name, database->data_file, database->page_file, primary_key_index);
+    Table* newTable = new Table(table_name, types, names, database, database->data_file, database->page_file, primary_key_index);
     *database->metadata_file << table_name << " ";
     // cout<<"TYPE:"<<endl;
     for (int i = 0; i < types.size(); i++) {
@@ -93,51 +87,6 @@ void Transaction::Commit() {
     // database->metadata_file->flush();
 }
 
-bool Transaction::IsVisible(uint64_t t_ins, uint64_t t_del) {
-    // cout << "TX_INSERTED DELTED: " << t_ins << " " << t_del << endl;
-    // cout << "CURRENT TRNASCTION: " << this->transaction_id << endl;
-    // // for()
-    // cout << "ACTIVE TRNASCTIONS : " << endl;
 
-    // for (auto act : active_transactions) {
-    //     cout << act << " ";
-    // }
-    // cout << endl;
-    bool isVisible = false;
-    if (t_ins == this->transaction_id) {
-        isVisible = true;
-    }
-    if (t_del == this->transaction_id) {
-        isVisible = false;
-    }
-    if (t_del == this->transaction_id) {
-        return isVisible;
-    }
-    bool isInsertedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_ins) != active_transactions.end());
-    bool isDeletedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_del) != active_transactions.end());
-    // cout<<"t del: "<<t_del<<" "<<"t_ins: "<<t_ins<<endl;
-    TRANSACTION_STATUS del_status = database->ReadTransactionLog(t_del);
-    TRANSACTION_STATUS ins_status = database->ReadTransactionLog(t_ins);
-    // cout<<"INSERTED_STATUS: " << uint8_t(ins_status)<<endl;
-    //     cout<<"DELETED_STATUS: "<< uint8_t(del_status)<<endl;
-
-    if (!isInsertedByActiveTransaction) {
-        isVisible = true;
-    }
-
-    if (!isDeletedByActiveTransaction && t_del != 0) {
-        isVisible = false;
-    }
-
-    if (del_status == TRANSACTION_STATUS::ABORTED) {
-        // cout<<"SASAS"<<endl;
-        isVisible = true;
-    }
-    if (ins_status == TRANSACTION_STATUS::ABORTED) {
-        isVisible = false;
-    }
-
-    return isVisible;
-}
 
 void Transaction::Rollback() { this->database->UpdateTransactionLog(transaction_id, TRANSACTION_STATUS::ABORTED); }
