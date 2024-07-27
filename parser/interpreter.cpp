@@ -38,13 +38,13 @@ class Interpreter {
                     if (!isTransactionRunning) {
                         tx->Commit();
                     } else if (dynamic_cast<CommitStatement *>(stmt.get())) {
-                        std::cout << "OH YEAHH BABBY" << std::endl;
+                        // std::cout << "OH YEAHH BABBY" << std::endl;
                         tx->Commit();
                         delete tx;
                         tx = nullptr;
                         isTransactionRunning = false;
                     } else if (dynamic_cast<RollbackStatement *>(stmt.get())) {
-                        std::cout << "OH YEAHH ROLLBACK" << std::endl;
+                        // std::cout << "OH YEAHH ROLLBACK" << std::endl;
                         tx->Rollback();
                         delete tx;
                         tx = nullptr;

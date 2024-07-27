@@ -151,9 +151,7 @@ void UpdateStatement::execute(Transaction* tx) const {
     if (where_condition) {
         cout<<"SIT DOWN BHAII"<<endl;
         data = where_condition->execute(tx, requestedColums, table);
-        for(auto d:data){
-            if(d)
-        }
+      
         cout<<data.size()<<endl;
     } else {
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);

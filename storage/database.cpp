@@ -53,7 +53,7 @@ Database::Database(string name) {
     string walFilePath = getWALFilePath(name);
     this->name = name;
     // Debugging output
-    cout << "Attempting to create/open files at: " << dataFilePath << " and " << metadataFilePath << endl;
+    // cout << "Attempting to create/open files at: " << dataFilePath << " and " << metadataFilePath << endl;
 
     // Ensure directories exist
     std::filesystem::path dataFileDir = std::filesystem::path(dataFilePath).parent_path();
@@ -84,27 +84,27 @@ Database::Database(string name) {
 
     // Check if files are opened
     if (data_file->is_open()) {
-        cout << "DATABASE CREATED." << std::endl;
+        // cout << "DATABASE CREATED." << std::endl;
     } else {
         cerr << "Error: Failed to open data file: " << dataFilePath << endl;
         throw std::runtime_error("Failed to create database file: " + dataFilePath);
     }
 
     if (metadata_file->is_open()) {
-        cout << "Metadata file CREATED." << std::endl;
+        // cout << "Metadata file CREATED." << std::endl;
     } else {
         cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
         throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
     }
 
     if (page_file->is_open()) {
-        cout << "Page file CREATED." << std::endl;
+        // cout << "Page file CREATED." << std::endl;
     } else {
         cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
         throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
     }
     if (transaction_log->is_open()) {
-        cout << "Page file CREATED." << std::endl;
+        // cout << "Page file CREATED." << std::endl;
     } else {
         cerr << "Error: Failed to open metadata file: " << metadataFilePath << endl;
         throw std::runtime_error("Failed to create metadata file: " + metadataFilePath);
@@ -124,6 +124,8 @@ Database::Database(string name) {
     }
 
     metadata_file->seekg(0, std::ios::beg);
+std::cout << "Successfully connected to database: \"" << name << "\"\n";
+
 }
 
 Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {

@@ -118,11 +118,11 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
-        cout << "KEY NOT FOUND" << endl;
+        // cout << "KEY NOT FOUND" << endl;
         return transactionVisibleRows;
     }
     if (currentNode == NULL) {
-        cout << "EMPTY";
+        // cout << "EMPTY";
         return transactionVisibleRows;
     }
     Block data = optData.value();
@@ -653,7 +653,7 @@ void Table::CreateIndex(string column_name, uint64_t transaction_id) {
             return;
         }
     }
-    cout << "EASSYYY ohh" << endl;
+    // cout << "EASSYYY ohh" << endl;
     Index* index = new Index(database->name, table_name, column_name);
     indexes.push_back(index);
     Index* primaryIndex = getIndex("");
@@ -666,11 +666,11 @@ void Table::CreateIndex(string column_name, uint64_t transaction_id) {
     if (!optData.has_value()) {
         // cout << "DRAMME" << endl;
 
-        cout << "KEY NOT FOUND" << endl;
+        // cout << "KEY NOT FOUND" << endl;
         return;
     }
     if (currentNode == NULL) {
-        cout << "EMPTY";
+        // cout << "EMPTY";
         return;
     }
     Block data = optData.value();
@@ -680,7 +680,7 @@ void Table::CreateIndex(string column_name, uint64_t transaction_id) {
     int i = 0;
     while ((currentNode->nextSibling != -1 || (currentNode->nextSibling == -1 && i < currentNode->blocks.size()))) {
         blNumber = currentNode->blocks[i].blockNumber.value();
-        cout << "pageNumver: " << pgNumber << " BL NUMBER HEHEHE : " << blNumber << endl;
+        // cout << "pageNumver: " << pgNumber << " BL NUMBER HEHEHE : " << blNumber << endl;
         pgNumber = currentNode->blocks[i].pageNumber.value();
         pair<optional<string>, pair<uint64_t, uint64_t>> read_value_data = readValue(data.pageNumber.value(), data.blockNumber.value());
         optional<string> foundValue = read_value_data.first;
