@@ -14,7 +14,7 @@ SelectStatement::SelectStatement(string table_name, vector<string> columns, shar
     this->where_condition = where_condition;
 }
 
-void SelectStatement::execute(Transaction* tx) const {
+string SelectStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<Column> requestedColums;
     if (columns.empty()) {
@@ -34,8 +34,8 @@ void SelectStatement::execute(Transaction* tx) const {
                 }
             }
             if (found == 0) {
-                cout << "ERORR WHILE PARSING COLUMNS DATA";
-                return;
+                throw runtime_error("ERORR WHILE PARSING COLUMNS DATA");
+                
             }
         }
     }
@@ -46,9 +46,6 @@ void SelectStatement::execute(Transaction* tx) const {
     } else {
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
-    
-
-
 
     // cout<<"YOOO: "<<data.size()<<endl;
 
@@ -61,7 +58,8 @@ void SelectStatement::execute(Transaction* tx) const {
         content.push_back(row);
     }
     CliTable::Table printTable(opt, content);
-    printTable.generate();
+
+    return printTable.getOutput();
 }
 
 CreateStatement::CreateStatement(string table_name, vector<Column> columns) {
@@ -69,7 +67,7 @@ CreateStatement::CreateStatement(string table_name, vector<Column> columns) {
     this->columns = columns;
 }
 
-void CreateStatement::execute(Transaction* tx) const {
+string CreateStatement::execute(Transaction* tx) const {
     vector<string> types, names;
     for (auto column : columns) {
         types.push_back(column.type);
@@ -77,6 +75,7 @@ void CreateStatement::execute(Transaction* tx) const {
     }
 
     tx->CreateTable(table_name, types, names, 0);
+    return string("Created Table: " + table_name);
 }
 
 InsertStatement::InsertStatement(string table_name, vector<string> columns, vector<string> values) {
@@ -85,10 +84,30 @@ InsertStatement::InsertStatement(string table_name, vector<string> columns, vect
     this->values = values;
 }
 
-void InsertStatement::execute(Transaction* tx) const {
+string InsertStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
-    cout<<"INSERTING TRANSACtiON"<<endl;
+    cout << "INSERTING TRANSACtiON" << endl;
     tx->Insert(this->values, table);
+
+    CliTable::Options opt;
+    // Contructing the table structure
+    CliTable::TableBody content;
+    cout<<"COLUMNS: "<<endl;
+    for (auto col:columns){
+        cout<<col<<" ";
+    }
+    cout<<endl;
+    content.push_back(columns);
+
+    cout<<"HMM "<<endl;
+    for (auto val:values){
+        cout<<val<<" ";
+    }
+    cout<<endl;
+    content.push_back(values);
+    CliTable::Table printTable(opt, content);
+    cout<<"WE DONE BOYZZ"<<endl;
+    return printTable.getOutput();
 }
 
 DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condition) {
@@ -96,7 +115,7 @@ DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condi
     this->where_condition = where_condition;
 }
 
-void DeleteStatement::execute(Transaction* tx) const {
+string DeleteStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<vector<string>> data;
     vector<Column> requestedColums = table->columns;
@@ -125,7 +144,7 @@ void DeleteStatement::execute(Transaction* tx) const {
         content.push_back(row);
     }
     CliTable::Table printTable(opt, content);
-    printTable.generate();
+    return printTable.getOutput();
 }
 
 UpdateStatement::UpdateStatement(string table_name, vector<pair<string, string>> newColumnValues, shared_ptr<Expr> where_condition) {
@@ -133,7 +152,7 @@ UpdateStatement::UpdateStatement(string table_name, vector<pair<string, string>>
     this->newColumnValues = newColumnValues;
     this->where_condition = where_condition;
 }
-void UpdateStatement::execute(Transaction* tx) const {
+string UpdateStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<vector<string>> data;
 
@@ -149,10 +168,10 @@ void UpdateStatement::execute(Transaction* tx) const {
     }
 
     if (where_condition) {
-        cout<<"SIT DOWN BHAII"<<endl;
+        cout << "SIT DOWN BHAII" << endl;
         data = where_condition->execute(tx, requestedColums, table);
-      
-        cout<<data.size()<<endl;
+
+        cout << data.size() << endl;
     } else {
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
@@ -174,14 +193,14 @@ void UpdateStatement::execute(Transaction* tx) const {
         content.push_back(row);
     }
     CliTable::Table printTable(opt, content);
-    printTable.generate();
+    return printTable.getOutput();
 }
 
 BeginStatement::BeginStatement() {}
-void BeginStatement::execute(Transaction* tx) const {}
+string BeginStatement::execute(Transaction* tx) const {}
 CommitStatement::CommitStatement() {}
 
-void CommitStatement::execute(Transaction* tx) const {}
+string CommitStatement::execute(Transaction* tx) const {}
 RollbackStatement::RollbackStatement() {}
 
-void RollbackStatement::execute(Transaction* tx) const {}
+string RollbackStatement::execute(Transaction* tx) const {}

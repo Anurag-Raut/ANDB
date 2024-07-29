@@ -15,8 +15,9 @@ class Parser {
    public:
     size_t currentTokenIndex = 0;
     vector<Token> tokens;
+    Database* database;
 
-    Parser(const std::vector<Token>& t) : tokens(t) {}
+    Parser(const std::vector<Token>& t,Database* db) : tokens(t),database(db) {}
 
     vector<unique_ptr<Statement>> parse() {
         vector<unique_ptr<Statement>> stmts;
@@ -300,9 +301,15 @@ class Parser {
             }
         }
 
-        vector<string> columns;
+        
+        Table* table=database->tables[table_name];
+        vector<string >cols;
+        for(auto col:table->columns){
+            cols.push_back(col.name);
+        }
+      
 
-        return make_unique<InsertStatement>(table_name, columns, values);
+        return make_unique<InsertStatement>(table_name, cols, values);
     }
 
     unique_ptr<DeleteStatement> parseDeleteStatement() {

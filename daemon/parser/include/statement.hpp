@@ -14,7 +14,7 @@ class Statement {
     // virtual void parse() = 0;
 
     // virtual void print() const = 0;
-    virtual void execute(Transaction* tx) const = 0;
+    virtual string execute(Transaction* tx) const = 0;
     
 };
 
@@ -27,7 +27,7 @@ class SelectStatement : public Statement {
 
     SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition);
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 
@@ -39,7 +39,7 @@ class CreateStatement : public Statement {
     CreateStatement(string table_name, vector<Column> columns);
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 
@@ -52,7 +52,7 @@ class InsertStatement : public Statement {
     InsertStatement(string table_name, vector<string> columns,vector<string> values);
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 
@@ -64,7 +64,7 @@ class DeleteStatement : public Statement {
     DeleteStatement(string table_name,shared_ptr<Expr>  where_condition);
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 
@@ -78,7 +78,7 @@ class UpdateStatement : public Statement {
     UpdateStatement(string table_name,vector<pair<string,string>> newColumnValues,shared_ptr<Expr>  where_condition);
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 
@@ -91,7 +91,7 @@ class BeginStatement : public Statement {
     BeginStatement();
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 
@@ -104,7 +104,7 @@ class CommitStatement : public Statement {
     CommitStatement();
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };
 class RollbackStatement : public Statement {
@@ -116,6 +116,6 @@ class RollbackStatement : public Statement {
     RollbackStatement();
 
 
-    void execute(Transaction* tx) const override;
+    string execute(Transaction* tx) const override;
 
 };

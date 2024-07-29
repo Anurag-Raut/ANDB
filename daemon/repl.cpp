@@ -13,7 +13,7 @@ void databaserepl(Database *db, int client_socket) { Interpreter interpreter(db,
 
 void repl(int client_socket) {
     int n;
-    char buffer[256];
+    char buffer[200000];
     std::string input;
     const char *welcome_message =
         "ANDB\n"
@@ -41,7 +41,10 @@ void repl(int client_socket) {
             if (!key.empty()) {
                 // Assuming Database and databaserepl are defined elsewhere
                 Database *db = new Database(key);
+                string database_connect="Successfully connected to Database: "+ key;
+                write(client_socket, database_connect.c_str(), database_connect.size());
                 databaserepl(db, client_socket);
+                
             } else {
                 const char *error = "Error: No database name provided.\n";
                 write(client_socket, error, strlen(error));

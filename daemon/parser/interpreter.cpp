@@ -1,9 +1,11 @@
+#include <sys/un.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <sstream>
-#include <sys/un.h>
-#include <unistd.h>
+
 #include "./expr.cpp"
 #include "./include/statement.hpp"
 #include "./parser.cpp"
@@ -16,21 +18,23 @@ class Interpreter {
         Transaction *tx = nullptr;
         bool isTransactionRunning = false;
         int n;
-        char buffer[256];
-        while ( true) {
+        char buffer[200000];
+        while (true) {
             n = read(client_socket, buffer, sizeof(buffer) - 1);
-            if(n==0){
+            if (n == 0) {
                 continue;
             }
             buffer[n] = '\0';
-            query=buffer;
-            cout<<"QUERY : "<<query<<endl;
+            query = buffer;
+            cout << "QUERY : " << query << endl;
             Tokenizer tokenizer(query);
-            Parser parser(tokenizer.tokens);
+            Parser parser(tokenizer.tokens,db);
             std::vector<std::unique_ptr<Statement>> stmts = parser.parse();
 
             if (stmts.size() > 0) {
                 for (auto &stmt : stmts) {
+                    try{
+
                     if (isTransactionRunning && dynamic_cast<BeginStatement *>(stmt.get())) {
                         throw std::runtime_error("TRANSACTION ALREADY RUNNING");
                     } else if (dynamic_cast<BeginStatement *>(stmt.get())) {
@@ -41,9 +45,9 @@ class Interpreter {
                     if (!isTransactionRunning) {
                         tx = new Transaction(db);
                     }
-                cout<<"BBSSSSS"<<endl;
-                    stmt->execute(tx);
-                    write(client_socket, query.c_str(), query.length());
+                    cout << "BBSSSSS" << endl;
+                    string response =stmt->execute(tx);
+                    write(client_socket, response.c_str(), response.length());
                     if (!isTransactionRunning) {
                         tx->Commit();
                     } else if (dynamic_cast<CommitStatement *>(stmt.get())) {
@@ -59,6 +63,11 @@ class Interpreter {
                         tx = nullptr;
                         isTransactionRunning = false;
                     }
+                    }
+                    catch (const std::exception& e) {
+                        write(client_socket, e.what(), strlen(e.what()));
+}
+
                 }
             }
         }
@@ -71,7 +80,7 @@ class Interpreter {
 
         while (std::getline(input_stream, query)) {
             Tokenizer tokenizer(query);
-            Parser parser(tokenizer.tokens);
+            Parser parser(tokenizer.tokens,db);
             std::vector<std::unique_ptr<Statement>> stmts = parser.parse();
 
             if (stmts.size() > 0) {
@@ -113,7 +122,7 @@ class Interpreter {
         // cout<<"THE ROCK: "<<query<<endl;oo
         Tokenizer tokenizer(query);
         // tokenizer.print();
-        Parser parser(tokenizer.tokens);
+        Parser parser(tokenizer.tokens,db);
 
         vector<unique_ptr<Statement>> stmts = parser.parse();
         Transaction *tx = NULL;
