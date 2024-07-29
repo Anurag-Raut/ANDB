@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/andb-daemon.dir/main.cpp.o -o andb-daemon 
