@@ -8,7 +8,7 @@
 
 using namespace std;
 void LoadTables(Database* database) {
-    cout<<"LOADINGGGG>>>"<<endl;
+    cout << "LOADINGGGG>>>" << endl;
     database->metadata_file->seekg(0);
     string line;
     getline(*(database->metadata_file), line);
@@ -39,7 +39,7 @@ void LoadTables(Database* database) {
         }
 
         int primary_key_index = 0;
-        // cout << "tableName: " << table_name << endl;
+        cout << "LOADING tableName: " << table_name << endl;
         Table* table = new Table(table_name, types, names, database, database->data_file, database->page_file, primary_key_index);
         database->tables[table_name] = table;
     }
@@ -124,15 +124,13 @@ Database::Database(string name) {
     }
 
     metadata_file->seekg(0, std::ios::beg);
-std::cout << "Successfully connected to database: \"" << name << "\"\n";
-
+    std::cout << "Successfully connected to database: \"" << name << "\"\n";
 }
 
 Table* Database::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
     Table* newTable = new Table(table_name, types, names, this, data_file, page_file, primary_key_index);
     metadata_file->seekp(0, ios::end);
-    metadata_file->seekg(0, ios::end);
-
+    cout<<"CREATE TABLE : "<<table_name<<endl;
     *metadata_file << table_name << " ";
     // cout<<"TYPE:"<<endl;
     for (int i = 0; i < types.size(); i++) {
@@ -191,8 +189,7 @@ TRANSACTION_STATUS Database::ReadTransactionLog(uint64_t transaction_id) {
     return status;
 }
 
-bool Database::IsVisible(uint64_t t_ins, uint64_t t_del,uint64_t transaction_id) {
-   
+bool Database::IsVisible(uint64_t t_ins, uint64_t t_del, uint64_t transaction_id) {
     bool isVisible = false;
     if (t_ins == transaction_id) {
         isVisible = true;

@@ -626,7 +626,7 @@ void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_fi
     Delete(args[primary_key_index], transaction_id, wal_file);
     Insert(args, transaction_id, wal_file);
     
-
+    cout<<"TABLE :UPDATED : "<<transaction_id<<" KEY: "<<args[primary_key_index]<<endl;
 
 }
 

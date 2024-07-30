@@ -42,36 +42,55 @@ vector<vector<string>> Transaction::RangeQuery(string* key1, string* key2, vecto
 }
 
 Table* Transaction::CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_index) {
+    // Move to the end of the metadata file to append
+    database->metadata_file->seekp(0, ios::end);
+
+    // Create the new table object
     Table* newTable = new Table(table_name, types, names, database, database->data_file, database->page_file, primary_key_index);
-    *database->metadata_file << table_name << " ";
-    // cout<<"TYPE:"<<endl;
+
+    // Write table name
+    database->metadata_file->write(table_name.c_str(), table_name.size());
+    database->metadata_file->write(" ", 1);
+
+    // Write types
     for (int i = 0; i < types.size(); i++) {
         string type = types[i];
-        *database->metadata_file << type;
-
+        database->metadata_file->write(type.c_str(), type.size());
+        
         if (i != types.size() - 1) {
-            *database->metadata_file << ",";
+            database->metadata_file->write(",", 1);
         }
     }
-    *database->metadata_file << " ";
+    database->metadata_file->write(" ", 1);
 
+    // Write names
     for (int i = 0; i < names.size(); i++) {
         string name = names[i];
-
-        *database->metadata_file << name;
+        database->metadata_file->write(name.c_str(), name.size());
 
         if (i != names.size() - 1) {
-            *database->metadata_file << ",";
+            database->metadata_file->write(",", 1);
         }
     }
-    *database->metadata_file << endl;
+
+    // End of line
+    database->metadata_file->write("\n", 1);
+
+    // Flush the stream
     database->metadata_file->flush();
-    database->tables[table_name] = (newTable);
+
+    // Add the table to the map
+    database->tables[table_name] = newTable;
+
     return newTable;
 }
 
+
 Table* Transaction::GetTable(string table_name) {
     Table* table = database->tables[table_name];
+    if(table==NULL){
+        throw runtime_error("TABLE "+table_name+" NOT FOUND");
+    }
     return table;
 }
 
@@ -85,7 +104,11 @@ void Transaction::Commit() {
     WAL wal(OPERATION::COMMIT, transaction_id, NULL, NULL);
     wal.write(database->wal_file);
     database->data_file->flush();
+        cout<<"HMM"<<endl;
+
     orderedLock.unlock();
+            cout<<"SADGE"<<endl;
+
     // database->metadata_file->seekp(0, ios::beg);
     // // cout<<"LSN  : "<<wal.LSN<<endl;
     // database->metadata_file->write(reinterpret_cast<const char*>(&wal.LSN), sizeof(wal.LSN));
