@@ -100,7 +100,7 @@ void test() {
     string query2 = R"(
         SELECT * FROM newtable 
 
- UPDATE newtable SET salary = 70000, age = 31 WHERE name = "key1"
+ UPDATE newtable SET salary = 22222, age = 31 WHERE name = "key1"
     
      SELECT * FROM newtable
 

@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
+#include <algorithm>
 #include "../storage/btree.cpp"
 #include "./include/database.hpp"
 #include "./index.cpp"
@@ -621,8 +621,13 @@ string Table::Search(string key, string column_name, uint64_t transaction_id) {
 }
 
 void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
+     
+
     Delete(args[primary_key_index], transaction_id, wal_file);
     Insert(args, transaction_id, wal_file);
+    
+
+
 }
 
 void Table::Delete(string key, uint64_t transaction_id, fstream* wal_file) {

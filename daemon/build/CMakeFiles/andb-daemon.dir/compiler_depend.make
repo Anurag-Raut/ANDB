@@ -270,15 +270,30 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
+  /usr/include/c++/11/mutex \
+  /usr/include/c++/11/bits/std_mutex.h \
+  /usr/include/c++/11/bits/unique_lock.h \
+  /usr/include/c++/11/map \
+  /usr/include/c++/11/bits/stl_tree.h \
+  /usr/include/c++/11/bits/node_handle.h \
+  /usr/include/c++/11/bits/stl_map.h \
+  /usr/include/c++/11/bits/stl_multimap.h \
+  /usr/include/c++/11/bits/erase_if.h \
+  ../utils/orderedLock.cpp \
+  /usr/include/c++/11/condition_variable \
+  /usr/include/c++/11/queue \
+  /usr/include/c++/11/deque \
+  /usr/include/c++/11/bits/stl_deque.h \
+  /usr/include/c++/11/bits/deque.tcc \
+  /usr/include/c++/11/bits/stl_heap.h \
+  /usr/include/c++/11/bits/stl_queue.h \
   ../storage/database.cpp \
   ../storage/include/database.hpp \
   /usr/include/c++/11/unordered_map \
   /usr/include/c++/11/bits/hashtable.h \
   /usr/include/c++/11/bits/hashtable_policy.h \
   /usr/include/c++/11/bits/enable_special_members.h \
-  /usr/include/c++/11/bits/node_handle.h \
   /usr/include/c++/11/bits/unordered_map.h \
-  /usr/include/c++/11/bits/erase_if.h \
   /usr/include/c++/11/cstring \
   ../storage/include/table.hpp \
   ../storage/include/btree.hpp \
@@ -288,7 +303,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/algorithm \
   /usr/include/c++/11/bits/stl_algo.h \
   /usr/include/c++/11/bits/algorithmfwd.h \
-  /usr/include/c++/11/bits/stl_heap.h \
   /usr/include/c++/11/bits/stl_tempbuf.h \
   /usr/include/c++/11/bits/uniform_int_dist.h \
   /usr/include/c++/11/pstl/glue_algorithm_defs.h \
@@ -321,11 +335,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/tr1/poly_hermite.tcc \
   /usr/include/c++/11/tr1/poly_laguerre.tcc \
   /usr/include/c++/11/tr1/riemann_zeta.tcc \
-  /usr/include/c++/11/queue \
-  /usr/include/c++/11/deque \
-  /usr/include/c++/11/bits/stl_deque.h \
-  /usr/include/c++/11/bits/deque.tcc \
-  /usr/include/c++/11/bits/stl_queue.h \
   ../storage/index.cpp \
   ../storage/transaction.cpp \
   ../storage/include/transaction.hpp \
@@ -353,10 +362,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/iterator \
   /usr/include/c++/11/bits/stream_iterator.h \
   ../cli-table-cpp/src/Utils.hpp \
-  /usr/include/c++/11/map \
-  /usr/include/c++/11/bits/stl_tree.h \
-  /usr/include/c++/11/bits/stl_map.h \
-  /usr/include/c++/11/bits/stl_multimap.h \
   /usr/include/c++/11/numeric \
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/pstl/glue_numeric_defs.h \
@@ -367,10 +372,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 ../cli-table-cpp/src/Utils.cpp:
 
 /usr/include/c++/11/bits/stl_numeric.h:
-
-/usr/include/c++/11/bits/stl_map.h:
-
-/usr/include/c++/11/map:
 
 /usr/include/c++/11/bits/stream_iterator.h:
 
@@ -408,21 +409,9 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 
 ../storage/include/transaction.hpp:
 
-/usr/include/c++/11/bits/stl_tree.h:
-
-../storage/transaction.cpp:
-
 ../storage/index.cpp:
 
-/usr/include/c++/11/bits/deque.tcc:
-
-/usr/include/c++/11/bits/shared_ptr_atomic.h:
-
-/usr/include/c++/11/queue:
-
 /usr/include/c++/11/tr1/riemann_zeta.tcc:
-
-/usr/include/c++/11/tr1/poly_laguerre.tcc:
 
 /usr/include/c++/11/tr1/poly_hermite.tcc:
 
@@ -477,6 +466,26 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 /usr/include/c++/11/unordered_map:
 
 ../storage/include/database.hpp:
+
+/usr/include/c++/11/bits/deque.tcc:
+
+/usr/include/c++/11/bits/shared_ptr_atomic.h:
+
+/usr/include/c++/11/queue:
+
+/usr/include/c++/11/bits/stl_map.h:
+
+../storage/transaction.cpp:
+
+/usr/include/c++/11/bits/stl_tree.h:
+
+/usr/include/c++/11/map:
+
+/usr/include/c++/11/tr1/poly_laguerre.tcc:
+
+/usr/include/c++/11/bits/std_mutex.h:
+
+/usr/include/c++/11/mutex:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h:
 
@@ -774,6 +783,8 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bits/stl_queue.h:
 
+../utils/orderedLock.cpp:
+
 /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
@@ -970,11 +981,15 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/array:
 
+/usr/include/c++/11/bits/unique_lock.h:
+
 /usr/include/c++/11/bits/uses_allocator.h:
 
 /usr/include/linux/stddef.h:
 
 /usr/include/c++/11/bits/refwrap.h:
+
+/usr/include/c++/11/condition_variable:
 
 /usr/include/c++/11/thread:
 

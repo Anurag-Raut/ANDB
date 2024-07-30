@@ -6,6 +6,9 @@
 #include <iostream>
 #include<vector>
 #include<fstream>
+#include <mutex>
+#include <map>
+#include "utils/orderedLock.cpp"
 
 using namespace std;
 extern const unsigned int PAGE_SIZE = 200;  
@@ -17,6 +20,8 @@ extern const int OFFSET_SIZE=sizeof(uint16_t);
 extern const size_t Block_HEADER_SIZE=(2*sizeof(uint16_t)) + sizeof(uint64_t)+sizeof(uint64_t);
 extern uint64_t TRANSACTION_ID=1;
 vector<uint64_t> active_transactions;
+map<string,vector<uint64_t>> rowLocks;
+OrderedLock orderedLock;
 
 
 std::string getDatabaseFilePath(std::string database_name) {
