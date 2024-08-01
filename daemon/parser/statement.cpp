@@ -39,13 +39,13 @@ string SelectStatement::execute(Transaction* tx) const {
             }
         }
     }
-
     vector<vector<string>> data;
     if (where_condition) {
         data = where_condition->execute(tx, requestedColums, table);
     } else {
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
+    cout<<"SILVER BULLET"<<endl;
 
     // cout<<"YOOO: "<<data.size()<<endl;
 
@@ -154,9 +154,14 @@ UpdateStatement::UpdateStatement(string table_name, vector<pair<string, string>>
 }
 string UpdateStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
+
     vector<vector<string>> data;
+        cout<<"NOTION"<<endl;
 
     vector<Column> requestedColums = table->columns;
+            cout<<"NOTION2"<<endl;
+
+    cout<<"PROD: "<<requestedColums.size()<<endl;
     map<string, int> getIndex;
 
     vector<string> columns;
@@ -166,16 +171,17 @@ string UpdateStatement::execute(Transaction* tx) const {
         columns.push_back(column.name);
         getIndex[column.name] = i;
     }
-
+    cout<<"WWAOOOOWOO"<<endl;
     if (where_condition) {
         cout << "SIT DOWN BHAII" << endl;
         data = where_condition->execute(tx, requestedColums, table);
 
         cout << data.size() << endl;
     } else {
+        
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
-
+    cout<<"AAAIII"<<endl;
     for (auto item : data) {
         for (auto newColumnValue : newColumnValues) {
             string columnName = newColumnValue.first;
@@ -184,6 +190,8 @@ string UpdateStatement::execute(Transaction* tx) const {
         }
         tx->Update(item, table);
     }
+        cout<<"WORKLOAD"<<endl;
+
 
     CliTable::Options opt;
     CliTable::TableBody content;
