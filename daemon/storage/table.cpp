@@ -105,23 +105,26 @@ bool parseArgument(const string& arg, const string& type) {
 vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, uint64_t transaction_id, bool includeKey1,
                                          bool includeKey2, string column_name = "") {
     vector<vector<string>> transactionVisibleRows;
+    cout<<"CRAZYY"<<endl;
 
     vector<pair<vector<string>, pair<uint64_t, uint64_t>>> rows;
     Index* index = this->getIndex(column_name);
+    cout<<"THING"<<endl;
     if (!index) {
         return transactionVisibleRows;
     }
+    // cout<<"KEY: "<<*key1<<endl;
 
     pair<BTreeNode*, optional<Block>> SearchResult1 = (!key1) ? index->btree->beg() : index->btree->search(*key1);
     BTreeNode* currentNode = SearchResult1.first;
     optional<Block> optData = SearchResult1.second;
 
     if (!optData.has_value()) {
-        // cout << "KEY NOT FOUND" << endl;
+        cout << "KEY NOT FOUND" << endl;
         return transactionVisibleRows;
     }
     if (currentNode == NULL) {
-        // cout << "EMPTY";
+        cout << "EMPTY";
         return transactionVisibleRows;
     }
     Block data = optData.value();
@@ -177,7 +180,8 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
         key = currentNode->blocks[i].key;
     }
 
-    // cout<<"ROWS: "<<rows.size()<<endl;
+    cout<<"ROWS: "<<rows.size()<<endl;
+    cout<<"transaction_id "<<transaction_id<<endl;
     for (auto row : rows) {
         // cout<<"row first : "<<row.first[1]<<endl;
         if (database->IsVisible(row.second.first, row.second.second, transaction_id)) {
@@ -626,7 +630,9 @@ void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_fi
     Delete(args[primary_key_index], transaction_id, wal_file);
     Insert(args, transaction_id, wal_file);
     
+    
     cout<<"TABLE :UPDATED : "<<transaction_id<<" KEY: "<<args[primary_key_index]<<endl;
+    
 
 }
 

@@ -6,6 +6,8 @@
 
 #include "../cli-table-cpp/src/Table.cpp"
 #include "../storage/include/transaction.hpp"
+#include "../globals.hpp"
+
 using namespace std;
 
 SelectStatement::SelectStatement(string table_name, vector<string> columns, shared_ptr<Expr> where_condition) {
@@ -17,6 +19,7 @@ SelectStatement::SelectStatement(string table_name, vector<string> columns, shar
 string SelectStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<Column> requestedColums;
+    cout<<"BALLS"<<endl;
     if (columns.empty()) {
         for (auto col : table->columns) {
             requestedColums.push_back(col);
@@ -39,6 +42,7 @@ string SelectStatement::execute(Transaction* tx) const {
             }
         }
     }
+    cout<<"COMEDY"<<endl;
     vector<vector<string>> data;
     if (where_condition) {
         data = where_condition->execute(tx, requestedColums, table);
@@ -172,16 +176,19 @@ string UpdateStatement::execute(Transaction* tx) const {
         getIndex[column.name] = i;
     }
     cout<<"WWAOOOOWOO"<<endl;
+    reevalute:
     if (where_condition) {
         cout << "SIT DOWN BHAII" << endl;
         data = where_condition->execute(tx, requestedColums, table);
 
-        cout << data.size() << endl;
+        cout <<"txid: "<<tx->transaction_id<<" data size: "<< data.size() << endl;
     } else {
         
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
     cout<<"AAAIII"<<endl;
+    try{
+
     for (auto item : data) {
         for (auto newColumnValue : newColumnValues) {
             string columnName = newColumnValue.first;
@@ -191,6 +198,11 @@ string UpdateStatement::execute(Transaction* tx) const {
         tx->Update(item, table);
     }
         cout<<"WORKLOAD"<<endl;
+    }
+    catch (const TransactionException& e) {
+          std::cout << "Transaction error: " << e.what() << std::endl;
+          goto reevalute;
+    }
 
 
     CliTable::Options opt;

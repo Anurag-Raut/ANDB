@@ -11,6 +11,7 @@
 #include "storage/database.cpp"
 #include "storage/transaction.cpp"
 
+
 #include "./repl.cpp"
 
 
@@ -101,6 +102,8 @@ int main() {
     if(!filesystem::exists(BASE_DIRECTORY)){
         filesystem::create_directory(BASE_DIRECTORY);
     }
+
+
 
     run_server();
 

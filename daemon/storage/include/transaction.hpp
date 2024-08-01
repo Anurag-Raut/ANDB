@@ -28,7 +28,7 @@ class Transaction {
     Table* CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_indexs);
     Table* GetTable(string table_name);
 
-    void Commit();
+    void Commit(bool isUpdate);
     bool IsVisible(uint64_t t_ins,uint64_t t_del);
     void Rollback();
 

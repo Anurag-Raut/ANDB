@@ -21,6 +21,11 @@ Transaction::Transaction(Database* database) {
     // cout<<"PROGRESS: "<<static_cast<int>(TRANSACTION_STATUS::IN_PROGRESS)<<endl;
     database->UpdateTransactionLog(TRANSACTION_ID, TRANSACTION_STATUS::IN_PROGRESS);
     TRANSACTION_ID++;
+    // database->metadata_file->seekp(0,ios::beg);
+    // database->metadata_file->write(reinterpret_cast<char*>(TRANSACTION_ID),sizeof(TRANSACTION_ID));
+    // database->metadata_file->flush();
+    database->writeTransactionId(TRANSACTION_ID);
+    cout<<"UPDATING TRANSACTION ID: "<<TRANSACTION_ID<<endl;
 }
 
 void Transaction::Insert(vector<string> args, Table* table) { table->Insert(args, transaction_id, database->wal_file); }
@@ -28,6 +33,11 @@ void Transaction::Update(vector<string> args, Table* table) {
     string key = args[table->primary_key_index];
 
     orderedLock.lock(transaction_id, rowLocks[key]);
+    if(orderedLock.wasPrevTransactionId){
+        orderedLock.unlock(false);
+        throw TransactionException("Previous transaction ID detected in Update operation");
+
+    }
     table->Update(args, transaction_id, database->wal_file);
 }
 string Transaction::Search(string key, string column_name, Table* table) { return table->Search(key, column_name, transaction_id); }
@@ -94,7 +104,7 @@ Table* Transaction::GetTable(string table_name) {
     return table;
 }
 
-void Transaction::Commit() {
+void Transaction::Commit(bool isUpdate) {
     auto it = std::find(active_transactions.begin(), active_transactions.end(), uint64_t(this->transaction_id));
 
     if (it != active_transactions.end()) {
@@ -106,7 +116,9 @@ void Transaction::Commit() {
     database->data_file->flush();
         cout<<"HMM"<<endl;
 
-    orderedLock.unlock();
+        
+   
+    orderedLock.unlock(isUpdate);
             cout<<"SADGE"<<endl;
 
     // database->metadata_file->seekp(0, ios::beg);

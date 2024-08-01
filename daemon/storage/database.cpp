@@ -76,7 +76,7 @@ Database::Database(string name) {
     createFile(walFilePath);
 
     data_file->open(dataFilePath, ios::in | ios::out);
-    metadata_file->open(metadataFilePath, ios::in | ios::out | ios::app);
+    metadata_file->open(metadataFilePath, ios::in | ios::out );
 
     page_file->open(pageFilePath, ios::in | ios::out);
     transaction_log->open(transaction_logPath, ios::in | ios::out | ios::app);
@@ -117,10 +117,20 @@ Database::Database(string name) {
         metadata_file->seekp(0, ios::beg);
         metadata_file->write(reinterpret_cast<char*>(&zero), sizeof(zero));
         *metadata_file << endl;
-        metadata_file->flush();
+        cout<<"ELON"<<endl;
+        
+        
 
     } else {
+        TRANSACTION_ID=readTransactionId();
+        cout<<"BUNCHH TRANSACTION IDDDDDD: "<<TRANSACTION_ID<<endl;
         LoadTables(this);
+            //     metadata_file->seekg(0, ios::beg);
+            //     cout<<"GG"<<endl;
+            //     uint64_t imp;
+            // metadata_file->read(reinterpret_cast<char*>(&imp), sizeof(TRANSACTION_ID));
+
+            // cout<<imp<<"  TRANSACTION IDDDDDD: TIDD: "<<TRANSACTION_ID<<endl;
     }
 
     metadata_file->seekg(0, std::ios::beg);
@@ -225,4 +235,32 @@ bool Database::IsVisible(uint64_t t_ins, uint64_t t_del, uint64_t transaction_id
     }
 
     return isVisible;
+}
+
+
+void Database::writeTransactionId( uint64_t transactionId) {
+    metadata_file->seekp(0, std::ios::beg);
+    metadata_file->write(reinterpret_cast<const char*>(&transactionId), sizeof(transactionId));
+    metadata_file->flush();
+    
+    // Check if write was successful
+    if (!metadata_file) {
+        std::cerr << "Error writing to file!" << std::endl;
+    }
+
+    cout<<"checking again"<<endl;
+    cout<<"MEMORY: "<<readTransactionId()<<endl;
+}
+
+uint64_t Database::readTransactionId() {
+    uint64_t transactionId = 0;
+    metadata_file->seekg(0, std::ios::beg);
+    metadata_file->read(reinterpret_cast<char*>(&transactionId), sizeof(transactionId));
+    
+    // Check if read was successful
+    if (!metadata_file) {
+        std::cerr << "Error reading from file!" << std::endl;
+    }
+    
+    return transactionId;
 }

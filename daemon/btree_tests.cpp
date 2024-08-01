@@ -76,16 +76,16 @@ void test() {
     // testSearchNonExistentKeys(table);
     // table->Print(table->columns[table->primary_key_index].name);
     string query = R"(
-        CREATE TABLE newtable (name STRING , age INT, salary INT)
+        CREATE TABLE new (name STRING , age INT, salary INT)
   
         
-        INSERT INTO newtable VALUES("key1" , 10 , 5000)
+        INSERT INTO new VALUES("key1" , 10 , 5000)
         
-        INSERT INTO newtable VALUES("key2" , 20 , 2000)
-        INSERT INTO newtable VALUES("key3" , 30 , 3000)
+        INSERT INTO new VALUES("key2" , 20 , 2000)
+        INSERT INTO new VALUES("key3" , 30 , 3000)
         INSERT INTO newtable VALUES("key4" , 30 , 3000)
         INSERT INTO newtable VALUES("key5" , 30 , 3000)
-        SELECT * FROM newtable
+        SELECT * FROM new
  
     
      
@@ -100,9 +100,9 @@ void test() {
     string query2 = R"(
         SELECT * FROM newtable 
 
- UPDATE newtable SET salary = 11122, age = 31 WHERE name = "key1"
+ UPDATE new SET salary = 6666, age = 234324234 WHERE name = "key1"
     
-     SELECT * FROM newtable
+     SELECT * FROM new
 
 
         )";
