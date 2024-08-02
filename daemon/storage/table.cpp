@@ -8,9 +8,11 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+
 #include "../storage/btree.cpp"
 #include "./include/database.hpp"
 #include "./index.cpp"
+#include "../cli-table-cpp/src/Table.hpp"
 
 using namespace std;
 struct PageMap {
@@ -102,12 +104,13 @@ bool parseArgument(const string& arg, const string& type) {
     }
     return false;  // Unknown type
 }
-vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, uint64_t transaction_id, bool includeKey1,
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> Table::RangeQuery(string* key1, string* key2, vector<Column> types, uint64_t transaction_id, bool includeKey1,
                                          bool includeKey2, string column_name = "") {
-    vector<vector<string>> transactionVisibleRows;
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> transactionVisibleRows;
     cout<<"CRAZYY"<<endl;
 
     vector<pair<vector<string>, pair<uint64_t, uint64_t>>> rows;
+    vector<pair<uint64_t,uint8_t>> pageAndBlockNumbers;
     Index* index = this->getIndex(column_name);
     cout<<"THING"<<endl;
     if (!index) {
@@ -156,11 +159,15 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
         // cout<<"HELLOOOO: "<< currentNode->blocks.size()<<endl;
         if (key1 && key == *key1 && includeKey1) {
             rows.push_back({rowData, {t_ins, t_del}});
+            pageAndBlockNumbers.push_back({pgNumber,blNumber});
         } else if (key2 && key == *key2 && includeKey2) {
             rows.push_back({rowData, {t_ins, t_del}});
+            pageAndBlockNumbers.push_back({pgNumber,blNumber});
 
         } else if (!key1 || !key2) {
             rows.push_back({rowData, {t_ins, t_del}});
+            pageAndBlockNumbers.push_back({pgNumber,blNumber});
+
         }
         // cout << "HELLO " << rows.size() << endl;
 
@@ -182,12 +189,34 @@ vector<vector<string>> Table::RangeQuery(string* key1, string* key2, vector<Colu
 
     cout<<"ROWS: "<<rows.size()<<endl;
     cout<<"transaction_id "<<transaction_id<<endl;
-    for (auto row : rows) {
+    database->PrintAllTransactions();
+    for (int i=0;i<rows.size();i++) {
+        auto row=rows[i];
+            for(auto item:row.first){
+                cout<<item<<" ";
+            }
+            cout<<endl;
         // cout<<"row first : "<<row.first[1]<<endl;
         if (database->IsVisible(row.second.first, row.second.second, transaction_id)) {
-            transactionVisibleRows.push_back(row.first);
+            cout<<"ISVISIBLE"<<endl;
+            transactionVisibleRows.push_back({row.first,pageAndBlockNumbers[i]});
+        }
+        else{
+            cout<<"is not visible"<<endl;
         }
     }
+
+    // CliTable::Options opt;
+    // // Contructing the table structure
+    // CliTable::TableBody content;
+
+    // for (auto row : transactionVisibleRows) {
+    //     content.push_back(row.first);
+    // }
+    // CliTable::Table printTable(opt, content);
+
+    //  printTable.generate();
+    
 
     return transactionVisibleRows;
 }
@@ -206,7 +235,7 @@ void Table::Insert(vector<string> args, uint64_t transaction_id, fstream* wal_fi
   
     string key = args[this->primary_key_index];
 
-    vector<vector<string>> foundRows = this->RangeQuery(&key, &key, this->columns,transaction_id, true, true);
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> foundRows = this->RangeQuery(&key, &key, this->columns,transaction_id, true, true);
     cout << "ENDL: " << args[this->primary_key_index] << endl;
   
     if (foundRows.size() > 0) {
@@ -624,10 +653,11 @@ string Table::Search(string key, string column_name, uint64_t transaction_id) {
     }
 }
 
-void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_file) {
+void Table::Update(vector<string> args,uint64_t page_number,uint16_t block_number, uint64_t transaction_id, fstream* wal_file) {
      
 
-    Delete(args[primary_key_index], transaction_id, wal_file);
+    Delete(args[primary_key_index],page_number,block_number, transaction_id, wal_file);
+    cout<<"WE DONE DELETING"<<endl;
     Insert(args, transaction_id, wal_file);
     
     
@@ -636,23 +666,20 @@ void Table::Update(vector<string> args, uint64_t transaction_id, fstream* wal_fi
 
 }
 
-void Table::Delete(string key, uint64_t transaction_id, fstream* wal_file) {
+void Table::Delete(string key,uint64_t page_number,uint16_t block_number, uint64_t transaction_id, fstream* wal_file) {
     // cout << "OH YEAHHH BABBYY" << endl;
     vector<Block> deletedBlocks;
-    for (auto index : indexes) {
-        deletedBlocks = index->btree->deleteNode(key);
-    }
-    // cout << "OH YEAHHH " << endl;
 
-    if (deletedBlocks.size() > 0) {
-        for (auto delBlock : deletedBlocks) {
+
+    // if (deletedBlocks.size() > 0) {
+    //     for (auto delBlock : deletedBlocks) {
             // cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() <<
             // endl;
-            deleteData(delBlock.pageNumber.value(), delBlock.blockNumber.value(), data_file, page_file, transaction_id);
-        }
-    } else {
-        cout << "Record Not found" << endl;
-    }
+            deleteData(page_number, block_number, data_file, page_file, transaction_id);
+        // }
+    // } else {
+    //     cout << "Record Not found" << endl;
+    // }
     if (wal_file) {
         WAL wal(OPERATION::DELETE, transaction_id, &key, NULL);
         wal.write(wal_file);

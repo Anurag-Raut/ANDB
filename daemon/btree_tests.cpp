@@ -98,10 +98,15 @@ void test() {
     Interpreter interpreter(database, query);
 
     string query2 = R"(
-        SELECT * FROM newtable 
+        SELECT * FROM new 
 
- UPDATE new SET salary = 6666, age = 234324234 WHERE name = "key1"
-    
+ UPDATE new SET salary = 1111, age = 11111 WHERE name = "key1"
+     UPDATE new SET salary = 222, age = 2222 WHERE name = "key1"
+     UPDATE new SET salary = 333, age = 333 WHERE name = "key1"
+     UPDATE new SET salary = 4444, age = 444 WHERE name = "key1"
+     UPDATE new SET salary = 555, age = 555 WHERE name = "key1"
+     UPDATE new SET salary = 666, age = 666 WHERE name = "key1"
+
      SELECT * FROM new
 
 

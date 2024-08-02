@@ -19,11 +19,11 @@ class Transaction {
 
     Transaction(Database* database);
     void Insert(vector<string> args, Table* table);
-    void Update(vector<string> args, Table* table);
+    void Update(vector<string> args,uint64_t page_number,uint16_t block_number, Table* table);
     string Search(string key, string column_name, Table* table);
     void Delete(string key, Table* table);
     void CreateIndex(string column_name, Table* table);
-    vector<vector<string>> RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1, bool includeKey2, Table* table,
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1, bool includeKey2, Table* table,
                                       string column_name = "");
     Table* CreateTable(string table_name, vector<string> types, vector<string> names, int primary_key_indexs);
     Table* GetTable(string table_name);

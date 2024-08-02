@@ -43,7 +43,7 @@ string SelectStatement::execute(Transaction* tx) const {
         }
     }
     cout<<"COMEDY"<<endl;
-    vector<vector<string>> data;
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> data;
     if (where_condition) {
         data = where_condition->execute(tx, requestedColums, table);
     } else {
@@ -59,7 +59,7 @@ string SelectStatement::execute(Transaction* tx) const {
     content.push_back(columns);
 
     for (auto row : data) {
-        content.push_back(row);
+        content.push_back(row.first);
     }
     CliTable::Table printTable(opt, content);
 
@@ -121,7 +121,7 @@ DeleteStatement::DeleteStatement(string table_name, shared_ptr<Expr> where_condi
 
 string DeleteStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
-    vector<vector<string>> data;
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> data;
     vector<Column> requestedColums = table->columns;
 
     vector<string> columns;
@@ -136,7 +136,7 @@ string DeleteStatement::execute(Transaction* tx) const {
     }
     // data = table->RangeQuery(NULL, NULL, {table->columns[table->primary_key_index]},true,true)
     for (auto item : data) {
-        tx->Delete(item[table->primary_key_index], table);
+        tx->Delete(item.first[table->primary_key_index], table);
     }
 
     CliTable::Options opt;
@@ -145,7 +145,7 @@ string DeleteStatement::execute(Transaction* tx) const {
     content.push_back(columns);
 
     for (auto row : data) {
-        content.push_back(row);
+        content.push_back(row.first);
     }
     CliTable::Table printTable(opt, content);
     return printTable.getOutput();
@@ -159,7 +159,7 @@ UpdateStatement::UpdateStatement(string table_name, vector<pair<string, string>>
 string UpdateStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
 
-    vector<vector<string>> data;
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> data;
         cout<<"NOTION"<<endl;
 
     vector<Column> requestedColums = table->columns;
@@ -186,16 +186,16 @@ string UpdateStatement::execute(Transaction* tx) const {
         
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
-    cout<<"AAAIII"<<endl;
+    cout<<"AAAIII: "<<data.size()<<endl;
     try{
 
     for (auto item : data) {
         for (auto newColumnValue : newColumnValues) {
             string columnName = newColumnValue.first;
             string newValue = newColumnValue.second;
-            item[getIndex[columnName]] = newValue;
+            item.first[getIndex[columnName]] = newValue;
         }
-        tx->Update(item, table);
+        tx->Update(item.first,item.second.first,item.second.second, table);
     }
         cout<<"WORKLOAD"<<endl;
     }
@@ -210,7 +210,7 @@ string UpdateStatement::execute(Transaction* tx) const {
     content.push_back(columns);
 
     for (auto row : data) {
-        content.push_back(row);
+        content.push_back(row.first);
     }
     CliTable::Table printTable(opt, content);
     return printTable.getOutput();
