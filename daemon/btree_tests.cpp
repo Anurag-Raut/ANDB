@@ -81,7 +81,7 @@ void test() {
         
         INSERT INTO new VALUES("key1" , 10 , 5000)
         
-        INSERT INTO new VALUES("key2" , 20 , 2000)
+        BEGIN INTO new VALUES("key2" , 20 , 2000)
         INSERT INTO new VALUES("key3" , 30 , 3000)
         INSERT INTO newtable VALUES("key4" , 30 , 3000)
         INSERT INTO newtable VALUES("key5" , 30 , 3000)

@@ -201,6 +201,7 @@ string UpdateStatement::execute(Transaction* tx) const {
     }
     catch (const TransactionException& e) {
           std::cout << "Transaction error: " << e.what() << std::endl;
+          orderedLock.wasPrevTransactionId=false;
           goto reevalute;
     }
 

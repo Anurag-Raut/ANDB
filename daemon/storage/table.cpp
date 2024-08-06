@@ -670,7 +670,7 @@ void Table::Delete(string key,uint64_t page_number,uint16_t block_number, uint64
     // cout << "OH YEAHHH BABBYY" << endl;
     vector<Block> deletedBlocks;
 
-
+    cout<<"DELETING key:"<<key<<" page-number:"<<page_number<<" BLOCK NUMBER: "<<block_number<<" transaction_id: "<<transaction_id<<endl;
     // if (deletedBlocks.size() > 0) {
     //     for (auto delBlock : deletedBlocks) {
             // cout << "deleted page Number: " << delBlock.pageNumber.value() << " deleted page Block Number: " << delBlock.blockNumber.value() <<

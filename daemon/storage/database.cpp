@@ -172,7 +172,7 @@ Database::~Database() { data_file->close(); }
 void Database::UpdateTransactionLog(uint64_t transaction_id, TRANSACTION_STATUS status) {
     transaction_log->clear();
     cout<<"WRTING TRANSACTION ID: "<<transaction_id<<endl;
-    // cout<<"WOOOOAOOOH  status: "<<static_cast<int>(status)<<endl;
+    cout<<"WOOOOAOOOH  status: "<<static_cast<int>(status)<<endl;
     transaction_log->seekp((transaction_id-1) * (sizeof(transaction_id) + sizeof(uint8_t)), std::ios::beg);
             cout<<"WRITE TP POINTER: "<<transaction_log->tellp()<<endl;
 
@@ -266,11 +266,11 @@ bool Database::IsVisible(uint64_t t_ins, uint64_t t_del, uint64_t transaction_id
     }
     bool isInsertedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_ins) != active_transactions.end());
     bool isDeletedByActiveTransaction = (std::find(active_transactions.begin(), active_transactions.end(), t_del) != active_transactions.end());
-    // cout<<"t del: "<<t_del<<" "<<"t_ins: "<<t_ins<<endl;
+    cout<<"t isInsert: "<<int(isInsertedByActiveTransaction)<<" "<<"t_is del: "<<int(isDeletedByActiveTransaction)<<endl;
     TRANSACTION_STATUS del_status = this->ReadTransactionLog(t_del);
     TRANSACTION_STATUS ins_status = this->ReadTransactionLog(t_ins);
     cout<<"INSERTED_STATUS: " << int(ins_status)<<endl;
-    //     cout<<"DELETED_STATUS: "<< uint8_t(del_status)<<endl;
+        cout<<"DELETED_STATUS: "<< int(del_status)<<endl;
     
     if (!isInsertedByActiveTransaction && ins_status!=TRANSACTION_STATUS::IN_PROGRESS) {
         cout<<"is not InsertedByActiveTransaction"<<endl;

@@ -34,8 +34,9 @@ void Transaction::Update(vector<string> args, uint64_t page_number, uint16_t blo
 
     orderedLock.lock(transaction_id, rowLocks[key]);
     if (orderedLock.wasPrevTransactionId) {
-        orderedLock.unlock(false);
+        // orderedLock.unlock(false);
         throw TransactionException("Previous transaction ID detected in Update operation");
+        return;
     }
     cout<<"UPDATINGGGG: "<<page_number<<" "<<block_number<<endl;
     table->Update(args, page_number, block_number, transaction_id, database->wal_file);
