@@ -7,7 +7,6 @@
 #include <sstream>
 
 #include "./expr.cpp"
-
 #include "./include/statement.hpp"
 #include "./parser.cpp"
 #include "./tokenizer.cpp"
@@ -18,7 +17,7 @@ class Interpreter {
         std::string query;
         Transaction *tx = nullptr;
         bool isTransactionRunning = false;
-        bool isUpdate=false;
+        bool isUpdate = false;
         int n;
         char buffer[200000];
         while (true) {
@@ -28,56 +27,53 @@ class Interpreter {
             }
             buffer[n] = '\0';
             query = buffer;
-            cout << "QUERY : " << query << endl;
-            Tokenizer tokenizer(query);
-            Parser parser(tokenizer.tokens,db);
-            std::vector<std::unique_ptr<Statement>> stmts = parser.parse();
+            std::vector<std::unique_ptr<Statement>> stmts;
+            try {
+                Tokenizer tokenizer(query);
+                Parser parser(tokenizer.tokens, db);
+                 stmts = parser.parse();
+            } catch (const std::exception &e) {
+                write(client_socket, e.what(), strlen(e.what()));
+            }
+
 
             if (stmts.size() > 0) {
                 for (auto &stmt : stmts) {
-                    try{
+                    try {
+                        if (isTransactionRunning && dynamic_cast<BeginStatement *>(stmt.get())) {
+                            throw std::runtime_error("TRANSACTION ALREADY RUNNING");
+                        } else if (dynamic_cast<BeginStatement *>(stmt.get())) {
+                            isTransactionRunning = true;
+                            tx = new Transaction(db);
+                        }
+                        if (dynamic_cast<UpdateStatement *>(stmt.get())) {
+                            isUpdate = true;
+                        }
 
-                    if (isTransactionRunning && dynamic_cast<BeginStatement *>(stmt.get())) {
-                        throw std::runtime_error("TRANSACTION ALREADY RUNNING");
-                    } else if (dynamic_cast<BeginStatement *>(stmt.get())) {
-                        cout<<"BRGIN STARTED"<<endl;
-                        isTransactionRunning = true;
-                        tx = new Transaction(db);
-                    }
-                    if(dynamic_cast<UpdateStatement*>(stmt.get())){
-                        isUpdate=true;
-                    }
-
-                    if (!isTransactionRunning) {
-                        cout<<"CREATING NEW TRANSACTIONNNN"<<endl;
-                        tx = new Transaction(db);
-                    }
-                    cout << "BBSSSSS" << endl;
-                    string response =stmt->execute(tx);
-                    write(client_socket, response.c_str(), response.length());
-                    if (!isTransactionRunning) {
-                        tx->Commit(false);
-                        isUpdate=false;
-                    } else if (dynamic_cast<CommitStatement *>(stmt.get())) {
-                        // std::cout << "OH YEAHH BABBY" << std::endl;
-                        tx->Commit(isUpdate);
-                        isUpdate=false;
-                        delete tx;
-                        tx = nullptr;
-                        isTransactionRunning = false;
-                    } else if (dynamic_cast<RollbackStatement *>(stmt.get())) {
-                        // std::cout << "OH YEAHH ROLLBACK" << std::endl;
-                        tx->Rollback();
-                        isUpdate=false;
-                        delete tx;
-                        tx = nullptr;
-                        isTransactionRunning = false;
-                    }
-                    }
-                    catch (const std::exception& e) {
+                        if (!isTransactionRunning) {
+                            tx = new Transaction(db);
+                        }
+                        string response = stmt->execute(tx);
+                        write(client_socket, response.c_str(), response.length());
+                        if (!isTransactionRunning) {
+                            tx->Commit(false);
+                            isUpdate = false;
+                        } else if (dynamic_cast<CommitStatement *>(stmt.get())) {
+                            tx->Commit(isUpdate);
+                            isUpdate = false;
+                            delete tx;
+                            tx = nullptr;
+                            isTransactionRunning = false;
+                        } else if (dynamic_cast<RollbackStatement *>(stmt.get())) {
+                            tx->Rollback();
+                            isUpdate = false;
+                            delete tx;
+                            tx = nullptr;
+                            isTransactionRunning = false;
+                        }
+                    } catch (const std::exception &e) {
                         write(client_socket, e.what(), strlen(e.what()));
-}
-
+                    }
                 }
             }
         }
@@ -111,13 +107,11 @@ class Interpreter {
     //                 if (!isTransactionRunning) {
     //                     tx->Commit();
     //                 } else if (dynamic_cast<CommitStatement *>(stmt.get())) {
-    //                     // std::cout << "OH YEAHH BABBY" << std::endl;
     //                     tx->Commit();
     //                     delete tx;
     //                     tx = nullptr;
     //                     isTransactionRunning = false;
     //                 } else if (dynamic_cast<RollbackStatement *>(stmt.get())) {
-    //                     // std::cout << "OH YEAHH ROLLBACK" << std::endl;
     //                     tx->Rollback();
     //                     delete tx;
     //                     tx = nullptr;
@@ -129,7 +123,6 @@ class Interpreter {
     // }
     // Interpreter(Database *db, string query) {
     //     // string query = "SELECT id,salary,age,name from test_table where index=\"key2\"";
-    //     // cout<<"THE ROCK: "<<query<<endl;oo
     //     Tokenizer tokenizer(query);
     //     // tokenizer.print();
     //     Parser parser(tokenizer.tokens,db);
@@ -140,9 +133,7 @@ class Interpreter {
 
     //     if (stmts.size() > 0) {
     //         // stmt->print();
-    //         // cout<<"LESS GO"<<endl;
     //         for (auto &stmt : stmts) {
-    //             // cout<<"ARE WE GOOD"<<endl;
 
     //             if (isTransactionRunning && dynamic_cast<BeginStatement *>(stmt.get())) {
     //                 runtime_error("TRANSACTION ALREADY RUNNING");
@@ -160,13 +151,11 @@ class Interpreter {
     //             if (!isTransactionRunning) {
     //                 tx->Commit();
     //             } else if (dynamic_cast<CommitStatement *>(stmt.get())) {
-    //                 cout << "OH YEAHH BABBY" << endl;
     //                 tx->Commit(false);
     //                 tx = NULL;
     //                 isTransactionRunning = false;
 
     //             } else if (dynamic_cast<RollbackStatement *>(stmt.get())) {
-    //                 cout << "OH YEAHH ROLLBACK" << endl;
     //                 tx->Rollback();
     //                 tx = NULL;
     //                 isTransactionRunning = false;

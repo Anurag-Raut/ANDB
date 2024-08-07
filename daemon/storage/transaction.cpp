@@ -14,18 +14,15 @@ using namespace std;
 
 Transaction::Transaction(Database* database) {
     this->database = database;
-    // cout << "TRANSACTION_ID: " << TRANSACTION_ID << endl;
     this->transaction_id = TRANSACTION_ID;
     active_transactions.push_back(TRANSACTION_ID);
     snapshot = new Snapshot{active_transactions : active_transactions};
-    // cout<<"PROGRESS: "<<static_cast<int>(TRANSACTION_STATUS::IN_PROGRESS)<<endl;
     database->UpdateTransactionLog(TRANSACTION_ID, TRANSACTION_STATUS::IN_PROGRESS);
     TRANSACTION_ID++;
     // database->metadata_file->seekp(0,ios::beg);
     // database->metadata_file->write(reinterpret_cast<char*>(TRANSACTION_ID),sizeof(TRANSACTION_ID));
     // database->metadata_file->flush();
     database->writeTransactionId(TRANSACTION_ID);
-    cout << "UPDATING TRANSACTION ID: " << TRANSACTION_ID << endl;
 }
 
 void Transaction::Insert(vector<string> args, Table* table) { table->Insert(args, transaction_id, database->wal_file); }
@@ -38,7 +35,6 @@ void Transaction::Update(vector<string> args, uint64_t page_number, uint16_t blo
         throw TransactionException("Previous transaction ID detected in Update operation");
         return;
     }
-    cout<<"UPDATINGGGG: "<<page_number<<" "<<block_number<<endl;
     table->Update(args, page_number, block_number, transaction_id, database->wal_file);
     // orderedLock.unlock(false);
 }
@@ -55,7 +51,6 @@ vector<pair<vector<string>,pair<uint64_t,uint16_t>>> Transaction::RangeQuery(str
                                                string column_name) {
     vector<pair<vector<string>, pair<uint64_t, uint16_t>>> rows =
         table->RangeQuery(key1, key2, types, transaction_id, includeKey1, includeKey2, column_name);
-    // cout<<"ROWS: "<<rows.size()<<endl;
 
     return rows;
 }
@@ -122,13 +117,10 @@ void Transaction::Commit(bool isUpdate) {
     WAL wal(OPERATION::COMMIT, transaction_id, NULL, NULL);
     wal.write(database->wal_file);
     database->data_file->flush();
-    cout << "HMM" << endl;
 
     orderedLock.unlock(isUpdate);
-    cout << "SADGE" << endl;
 
     // database->metadata_file->seekp(0, ios::beg);
-    // // cout<<"LSN  : "<<wal.LSN<<endl;
     // database->metadata_file->write(reinterpret_cast<const char*>(&wal.LSN), sizeof(wal.LSN));
     // database->metadata_file->flush();
 }

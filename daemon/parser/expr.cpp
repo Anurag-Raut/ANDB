@@ -18,13 +18,11 @@ vector<pair<vector<string>,pair<uint64_t,uint16_t>>> ANDExpr::execute(Transactio
 
     left_rows=left->execute(tx,table->columns,table);
         right_rows=right->execute(tx,table->columns,table);
-        cout<<"LESS GOO: "<<left_rows.size()<<" "<<right_rows.size()<<endl;
 
         for(auto left_row:left_rows){
             for(auto right_row:right_rows){
                 
                 if(left_row.first[table->primary_key_index]==right_row.first[table->primary_key_index]){
-                    cout<<left_row.first[table->primary_key_index]<<right_row.first[table->primary_key_index]<<endl;
                     vector<string> row=table->Deconstruct(right_row.first,requestedColums);
 
                     response.push_back({row,right_row.second});
@@ -150,7 +148,6 @@ vector<pair<vector<string>,pair<uint64_t,uint16_t>>> BinaryExpr::execute(Transac
 
 //     case TokenType::SLASH:
 //       if (checkType<double>({left, right})) {
-//         // cout << "double" << endl;
 
 //         return string(any_cast<double>(left.value) /
 //                        any_cast<double>(right.value));
@@ -259,14 +256,12 @@ vector<pair<vector<string>,pair<uint64_t,uint16_t>>> BinaryExpr::execute(Transac
 
 // string LiteralExpr::evaluate(Environment *env) {
 //   // literal.printLiteral();
-//   // cout<<"gegeg"<<endl;
 
 //   return literal;
 // }
 
 // string IdentifierExpr::evaluate(Environment *env) {
 //   // literal.printLiteral();
-//   // cout<<"sad "<<name<<endl;
 //   // variables[name].printLiteral();
 
 //   return env->getVariable(name, env);
@@ -287,7 +282,6 @@ vector<pair<vector<string>,pair<uint64_t,uint16_t>>> BinaryExpr::execute(Transac
 //     shared_ptr<FuncDecl> func= env->getFunction(this->identidier,env);
 
 //     string val=func->executeArgs((this->args),env);
-//     // cout<<"received call value for "<<identidier<<" is :";
 //     // val.printLiteral();
 
 //     return val;

@@ -10,11 +10,9 @@ class Tokenizer {
    public:
     vector<Token> tokens;
     Tokenizer(string query) {
-        // cout << "EMII::::" << query.size() << endl;
 
         int i = 0;
         while (i < query.size()) {
-            // cout<<i<<endl;
             if (isspace(query[i])) {
                 // Skip whitespace
                 ++i;
@@ -55,10 +53,8 @@ class Tokenizer {
                     ++i;
                 }
                 if (keywordMap.find(token) != keywordMap.end()) {
-                    // cout << "KEYWORD: " << token << endl;
                     tokens.push_back(Token(token, keywordMap[token]));
                 } else {
-                    // cout << "IDENTIDEr: " << token << endl;
                     tokens.push_back(Token(token, TokenType::IDENTIFIER));
                 }
             } else if (isdigit(query[i])) {
@@ -115,9 +111,7 @@ class Tokenizer {
     }
 
     void print() {
-        cout << "TOKENS: " << endl;
         for (auto token : tokens) {
-            cout << " " << token.value << endl;
         }
     }
 
