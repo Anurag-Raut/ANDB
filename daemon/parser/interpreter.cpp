@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "./expr.cpp"
+
 #include "./include/statement.hpp"
 #include "./parser.cpp"
 #include "./tokenizer.cpp"
@@ -39,6 +40,7 @@ class Interpreter {
                     if (isTransactionRunning && dynamic_cast<BeginStatement *>(stmt.get())) {
                         throw std::runtime_error("TRANSACTION ALREADY RUNNING");
                     } else if (dynamic_cast<BeginStatement *>(stmt.get())) {
+                        cout<<"BRGIN STARTED"<<endl;
                         isTransactionRunning = true;
                         tx = new Transaction(db);
                     }
@@ -47,6 +49,7 @@ class Interpreter {
                     }
 
                     if (!isTransactionRunning) {
+                        cout<<"CREATING NEW TRANSACTIONNNN"<<endl;
                         tx = new Transaction(db);
                     }
                     cout << "BBSSSSS" << endl;

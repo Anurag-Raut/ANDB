@@ -13,8 +13,8 @@ ANDExpr::ANDExpr(shared_ptr<Expr> left, shared_ptr<Expr> right) {
     this->right = (right);
 }
 
-vector<vector<string>> ANDExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { 
-    vector<vector<string>> left_rows,right_rows,response;
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> ANDExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { 
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> left_rows,right_rows,response;
 
     left_rows=left->execute(tx,table->columns,table);
         right_rows=right->execute(tx,table->columns,table);
@@ -22,10 +22,12 @@ vector<vector<string>> ANDExpr::execute(Transaction* tx ,vector<Column> requeste
 
         for(auto left_row:left_rows){
             for(auto right_row:right_rows){
+                
+                if(left_row.first[table->primary_key_index]==right_row.first[table->primary_key_index]){
+                    cout<<left_row.first[table->primary_key_index]<<right_row.first[table->primary_key_index]<<endl;
+                    vector<string> row=table->Deconstruct(right_row.first,requestedColums);
 
-                if(left_row[table->primary_key_index]==right_row[table->primary_key_index]){
-                    cout<<left_row[table->primary_key_index]<<right_row[table->primary_key_index]<<endl;
-                    response.push_back(table->Deconstruct(right_row,requestedColums));
+                    response.push_back({row,right_row.second});
                     break;
                 }
             }
@@ -41,22 +43,23 @@ ORExpr::ORExpr(shared_ptr<Expr> left, shared_ptr<Expr> right) {
     this->right = (right);
 }
 
-vector<vector<string>> ORExpr::execute(Transaction* tx, vector<Column> requestedColumns, Table* table) { 
-    vector<vector<string>> left_rows, right_rows, response;
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> ORExpr::execute(Transaction* tx, vector<Column> requestedColumns, Table* table) { 
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>> left_rows, right_rows, response;
     unordered_set<string> added_primary_keys;
 
     left_rows = left->execute(tx, table->columns, table);
     right_rows = right->execute(tx, table->columns, table);
 
     for (auto& left_row : left_rows) {
-        response.push_back(table->Deconstruct(left_row,requestedColumns));
-        added_primary_keys.insert(left_row[table->primary_key_index]);
+
+        response.push_back({table->Deconstruct(left_row.first,requestedColumns),left_row.second});
+        added_primary_keys.insert(left_row.first[table->primary_key_index]);
     }
 
     for (auto& right_row : right_rows) {
-        if (added_primary_keys.find(right_row[table->primary_key_index]) == added_primary_keys.end()) {
-            response.push_back(table->Deconstruct(right_row,requestedColumns));
-            added_primary_keys.insert(right_row[table->primary_key_index]);
+        if (added_primary_keys.find(right_row.first[table->primary_key_index]) == added_primary_keys.end()) {
+            response.push_back({table->Deconstruct(right_row.first,requestedColumns),right_row.second});
+            added_primary_keys.insert(right_row.first[table->primary_key_index]);
         }
     }
 
@@ -64,9 +67,9 @@ vector<vector<string>> ORExpr::execute(Transaction* tx, vector<Column> requested
 }
 
 IdentifierExpr::IdentifierExpr(string name) { this->name = name; }
-vector<vector<string>> IdentifierExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> IdentifierExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
 LiteralExpr::LiteralExpr(string literal) { this->literal = literal; }
-vector<vector<string>> LiteralExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> LiteralExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) { return {{}}; }
 
 BinaryExpr::BinaryExpr(shared_ptr<Expr> left, Token op, shared_ptr<Expr> right) {
     this->left = (left);
@@ -74,7 +77,7 @@ BinaryExpr::BinaryExpr(shared_ptr<Expr> left, Token op, shared_ptr<Expr> right) 
     this->op = op;
 }
 
-vector<vector<string>> BinaryExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) {
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> BinaryExpr::execute(Transaction* tx ,vector<Column> requestedColums, Table* table) {
     shared_ptr<LiteralExpr> Literal;
     if (isLeftIdentifierExpr()) {
         Literal = dynamic_pointer_cast<LiteralExpr>(this->right);
@@ -101,7 +104,7 @@ vector<vector<string>> BinaryExpr::execute(Transaction* tx ,vector<Column> reque
 
 }
 
-// vector<vector<string>> BinaryExpr::execute(){
+// vector<pair<vector<string>,pair<uint64_t,uint16_t>>> BinaryExpr::execute(){
 //     if(isLeftIdentifierExpr() && !isRightIdentifierExpr()){
 
 //         return Tabe
