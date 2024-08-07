@@ -19,14 +19,12 @@ SelectStatement::SelectStatement(string table_name, vector<string> columns, shar
 string SelectStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
     vector<Column> requestedColums;
-    cout<<"BALLS"<<endl;
     if (columns.empty()) {
         for (auto col : table->columns) {
             requestedColums.push_back(col);
             columns.push_back(col.name);
         }
     } else {
-        // cout<<"COLUMNS SIZE: "<<columns.size()<<endl;
         for (auto column_name : columns) {
             bool found = 0;
 
@@ -42,16 +40,13 @@ string SelectStatement::execute(Transaction* tx) const {
             }
         }
     }
-    cout<<"COMEDY"<<endl;
     vector<pair<vector<string>,pair<uint64_t,uint16_t>>> data;
     if (where_condition) {
         data = where_condition->execute(tx, requestedColums, table);
     } else {
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
-    cout<<"SILVER BULLET"<<endl;
 
-    // cout<<"YOOO: "<<data.size()<<endl;
 
     CliTable::Options opt;
     // Contructing the table structure
@@ -90,27 +85,19 @@ InsertStatement::InsertStatement(string table_name, vector<string> columns, vect
 
 string InsertStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
-    cout << "INSERTING TRANSACtiON" << endl;
     tx->Insert(this->values, table);
 
     CliTable::Options opt;
     // Contructing the table structure
     CliTable::TableBody content;
-    cout<<"COLUMNS: "<<endl;
     for (auto col:columns){
-        cout<<col<<" ";
     }
-    cout<<endl;
     content.push_back(columns);
 
-    cout<<"HMM "<<endl;
     for (auto val:values){
-        cout<<val<<" ";
     }
-    cout<<endl;
     content.push_back(values);
     CliTable::Table printTable(opt, content);
-    cout<<"WE DONE BOYZZ"<<endl;
     return printTable.getOutput();
 }
 
@@ -160,12 +147,9 @@ string UpdateStatement::execute(Transaction* tx) const {
     Table* table = tx->GetTable(table_name);
 
     vector<pair<vector<string>,pair<uint64_t,uint16_t>>> data;
-        cout<<"NOTION"<<endl;
 
     vector<Column> requestedColums = table->columns;
-            cout<<"NOTION2"<<endl;
 
-    cout<<"PROD: "<<requestedColums.size()<<endl;
     map<string, int> getIndex;
 
     vector<string> columns;
@@ -175,18 +159,14 @@ string UpdateStatement::execute(Transaction* tx) const {
         columns.push_back(column.name);
         getIndex[column.name] = i;
     }
-    cout<<"WWAOOOOWOO"<<endl;
     reevalute:
     if (where_condition) {
-        cout << "SIT DOWN BHAII" << endl;
         data = where_condition->execute(tx, requestedColums, table);
 
-        cout <<"txid: "<<tx->transaction_id<<" data size: "<< data.size() << endl;
     } else {
         
         data = tx->RangeQuery(NULL, NULL, requestedColums, true, true, table);
     }
-    cout<<"AAAIII: "<<data.size()<<endl;
     try{
 
     for (auto item : data) {
@@ -197,10 +177,8 @@ string UpdateStatement::execute(Transaction* tx) const {
         }
         tx->Update(item.first,item.second.first,item.second.second, table);
     }
-        cout<<"WORKLOAD"<<endl;
     }
     catch (const TransactionException& e) {
-          std::cout << "Transaction error: " << e.what() << std::endl;
           orderedLock.wasPrevTransactionId=false;
           goto reevalute;
     }
