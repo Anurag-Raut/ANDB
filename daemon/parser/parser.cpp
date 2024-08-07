@@ -49,11 +49,9 @@ class Parser {
                 //     return parseAlterStatement();
                 // }
                 else {
-                    std::cout << "Syntax error: Unexpected keyword '" << token.value << "'\n";
                     return {};
                 }
             } else {
-                std::cout << "Syntax error: Unexpected token '" << token.value << "'\n";
                 return {};
             }
         }
@@ -148,7 +146,6 @@ class Parser {
         if (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL, TokenType::EQUAL})) {
             Token op = tokens[currentTokenIndex];
             currentTokenIndex++;
-            // cout << "OPPP " << op.lexeme << endl;
             shared_ptr<Expr> right = comparison();
             return std::make_shared<BinaryExpr>((left), op, (right));
         }
@@ -195,7 +192,6 @@ class Parser {
     // }
 
     shared_ptr<Expr> primary() {
-        // cout<<tokens[currentTokenIndex].lexeme<<endl;
 
         if (match({TokenType::LITERAL})) {
             currentTokenIndex++;
@@ -207,7 +203,6 @@ class Parser {
         // }
 
         // if (match({TokenType::NUMBER, TokenType::STRING})) {
-        //     // cout << "Number " << tokens[currentTokenIndex].lexeme << endl;
         //     currentTokenIndex++;
         //     return std::make_shared<LiteralExpr>(tokens[currentTokenIndex - 1].value);
         // }
@@ -217,16 +212,12 @@ class Parser {
         //     return std::make_shared<GroupingExpr>((expr));
         // }
         if (match({TokenType::IDENTIFIER})) {
-            // cout<<"hellp "<<tokens[currentTokenIndex].lexeme<<endl;
             currentTokenIndex++;
             string identifier = tokens[currentTokenIndex - 1].value;
-            // cout << "identier " << identifier << endl;
-            // cout << tokens[currentTokenIndex].lexeme << endl;
 
             return make_shared<IdentifierExpr>((tokens[currentTokenIndex - 1].value));
             // if(variables.find(tokens[currentTokenIndex].lexeme)!=variables.end()){
             //   currentTokenIndex++;
-            //   cout<<"got hrerere"<<endl;
             //   return std::make_shared<LiteralExpr>(variables[tokens[currentTokenIndex -
             //   1].lexeme]);
             // }
@@ -288,7 +279,6 @@ class Parser {
         vector<string> values;
         while (!match({TokenType::RIGHT_PAREN})) {
             string value;
-            // cout << "ONUS" << endl;
             value = tokens[currentTokenIndex].value;
             consume(TokenType::LITERAL, "EXPECTED A LITERAL");
 
