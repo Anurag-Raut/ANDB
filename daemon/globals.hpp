@@ -11,7 +11,7 @@
 #include "utils/orderedLock.cpp"
 
 using namespace std;
-extern const unsigned int PAGE_SIZE = 200;  
+extern const unsigned int PAGE_SIZE = 4000;  
 
 const std::string BASE_DIRECTORY = std::filesystem::current_path().string() + "/base/";
 

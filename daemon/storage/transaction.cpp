@@ -25,27 +25,36 @@ Transaction::Transaction(Database* database) {
     // database->metadata_file->write(reinterpret_cast<char*>(TRANSACTION_ID),sizeof(TRANSACTION_ID));
     // database->metadata_file->flush();
     database->writeTransactionId(TRANSACTION_ID);
-    cout<<"UPDATING TRANSACTION ID: "<<TRANSACTION_ID<<endl;
+    cout << "UPDATING TRANSACTION ID: " << TRANSACTION_ID << endl;
 }
 
 void Transaction::Insert(vector<string> args, Table* table) { table->Insert(args, transaction_id, database->wal_file); }
-void Transaction::Update(vector<string> args, Table* table) {
+void Transaction::Update(vector<string> args, uint64_t page_number, uint16_t block_number, Table* table) {
     string key = args[table->primary_key_index];
 
     orderedLock.lock(transaction_id, rowLocks[key]);
-    if(orderedLock.wasPrevTransactionId){
-        orderedLock.unlock(false);
+    if (orderedLock.wasPrevTransactionId) {
+        // orderedLock.unlock(false);
         throw TransactionException("Previous transaction ID detected in Update operation");
-
+        return;
     }
-    table->Update(args, transaction_id, database->wal_file);
+    cout<<"UPDATINGGGG: "<<page_number<<" "<<block_number<<endl;
+    table->Update(args, page_number, block_number, transaction_id, database->wal_file);
+    // orderedLock.unlock(false);
 }
 string Transaction::Search(string key, string column_name, Table* table) { return table->Search(key, column_name, transaction_id); }
-void Transaction::Delete(string key, Table* table) { table->Delete(key, transaction_id, database->wal_file); }
+void Transaction::Delete(string key, Table* table) {
+    vector<pair<vector<string>, pair<uint64_t, uint16_t>>> rowsToDelete =
+        table->RangeQuery(&key, &key, table->columns, transaction_id, true, true, table->columns[table->primary_key_index].name);
+    for (auto row : rowsToDelete) {
+        table->Delete(key, row.second.first, row.second.second, transaction_id, database->wal_file);
+    }
+}
 void Transaction::CreateIndex(string column_name, Table* table) { table->CreateIndex(column_name, transaction_id); }
-vector<vector<string>> Transaction::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1, bool includeKey2, Table* table,
+vector<pair<vector<string>,pair<uint64_t,uint16_t>>> Transaction::RangeQuery(string* key1, string* key2, vector<Column> types, bool includeKey1, bool includeKey2, Table* table,
                                                string column_name) {
-    vector<vector<string>> rows = table->RangeQuery(key1, key2, types, transaction_id, includeKey1, includeKey2, column_name);
+    vector<pair<vector<string>, pair<uint64_t, uint16_t>>> rows =
+        table->RangeQuery(key1, key2, types, transaction_id, includeKey1, includeKey2, column_name);
     // cout<<"ROWS: "<<rows.size()<<endl;
 
     return rows;
@@ -66,7 +75,7 @@ Table* Transaction::CreateTable(string table_name, vector<string> types, vector<
     for (int i = 0; i < types.size(); i++) {
         string type = types[i];
         database->metadata_file->write(type.c_str(), type.size());
-        
+
         if (i != types.size() - 1) {
             database->metadata_file->write(",", 1);
         }
@@ -95,11 +104,10 @@ Table* Transaction::CreateTable(string table_name, vector<string> types, vector<
     return newTable;
 }
 
-
 Table* Transaction::GetTable(string table_name) {
     Table* table = database->tables[table_name];
-    if(table==NULL){
-        throw runtime_error("TABLE "+table_name+" NOT FOUND");
+    if (table == NULL) {
+        throw runtime_error("TABLE " + table_name + " NOT FOUND");
     }
     return table;
 }
@@ -114,12 +122,10 @@ void Transaction::Commit(bool isUpdate) {
     WAL wal(OPERATION::COMMIT, transaction_id, NULL, NULL);
     wal.write(database->wal_file);
     database->data_file->flush();
-        cout<<"HMM"<<endl;
+    cout << "HMM" << endl;
 
-        
-   
     orderedLock.unlock(isUpdate);
-            cout<<"SADGE"<<endl;
+    cout << "SADGE" << endl;
 
     // database->metadata_file->seekp(0, ios::beg);
     // // cout<<"LSN  : "<<wal.LSN<<endl;

@@ -336,6 +336,10 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/tr1/poly_laguerre.tcc \
   /usr/include/c++/11/tr1/riemann_zeta.tcc \
   ../storage/index.cpp \
+  ../cli-table-cpp/src/Table.hpp \
+  /usr/include/c++/11/iterator \
+  /usr/include/c++/11/bits/stream_iterator.h \
+  ../cli-table-cpp/src/Utils.hpp \
   ../storage/transaction.cpp \
   ../storage/include/transaction.hpp \
   ../repl.cpp \
@@ -358,10 +362,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
   ../parser/parser.cpp \
   ../parser/statement.cpp \
   ../cli-table-cpp/src/Table.cpp \
-  ../cli-table-cpp/src/Table.hpp \
-  /usr/include/c++/11/iterator \
-  /usr/include/c++/11/bits/stream_iterator.h \
-  ../cli-table-cpp/src/Utils.hpp \
   /usr/include/c++/11/numeric \
   /usr/include/c++/11/bits/stl_numeric.h \
   /usr/include/c++/11/pstl/glue_numeric_defs.h \
@@ -372,8 +372,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 ../cli-table-cpp/src/Utils.cpp:
 
 /usr/include/c++/11/bits/stl_numeric.h:
-
-/usr/include/c++/11/bits/stream_iterator.h:
 
 ../parser/statement.cpp:
 
@@ -395,10 +393,6 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 
 /usr/include/c++/11/bit:
 
-../cli-table-cpp/src/Utils.hpp:
-
-/usr/include/c++/11/bits/align.h:
-
 /usr/include/c++/11/bits/stl_raw_storage_iter.h:
 
 /usr/include/c++/11/memory:
@@ -408,6 +402,12 @@ CMakeFiles/andb-daemon.dir/main.cpp.o: ../main.cpp \
 ../parser/tokenizer.cpp:
 
 ../storage/include/transaction.hpp:
+
+/usr/include/c++/11/bits/align.h:
+
+../cli-table-cpp/src/Utils.hpp:
+
+/usr/include/c++/11/bits/stream_iterator.h:
 
 ../storage/index.cpp:
 

@@ -37,11 +37,11 @@ class Table  {
     Database *database;
     Table(string table_name, vector<string> types, vector<string> names, Database *database, fstream* data_file, fstream* page_file,int primary_key_index);
     void Insert(vector<string> args,uint64_t transaction_id,fstream * wal_file);
-    void Update(vector<string> args,uint64_t transaction_id,fstream * wal_file);
+    void Update(vector<string> args,uint64_t page_number,uint16_t block_number,uint64_t transaction_id,fstream * wal_file);
     string Search(string key,string column_name,uint64_t transaction_id);
-    void Delete(string key,uint64_t transaction_id,fstream * wal_file);
+    void Delete(string key,uint64_t page_number,uint16_t block_number,uint64_t transaction_id,fstream * wal_file);
     void CreateIndex(string column_name,uint64_t transaction_id);
-    vector<vector<string>>  RangeQuery(string* key1,string* key2,vector<Column> types,uint64_t transaction_id,bool includeKey1,bool includeKey2,string column_name);
+    vector<pair<vector<string>,pair<uint64_t,uint16_t>>>   RangeQuery(string* key1,string* key2,vector<Column> types,uint64_t transaction_id,bool includeKey1,bool includeKey2,string column_name);
     vector<string> Deconstruct(string row,vector<Column> types);
     vector<string> Deconstruct(vector<string>rowValues, vector<Column> types);
 
