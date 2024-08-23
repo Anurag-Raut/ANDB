@@ -12,7 +12,7 @@ Thread Management: Handle multiple queries and operations simultaneously with a 
 C++11 or later
 CMake (for building the project)
 Basic understanding of SQL and relational databases
-### Installation
+### Building
 Clone the Repository:
 
 ```
@@ -26,25 +26,95 @@ mkdir build
 cmake -B build -S .
 cmake --build ./build
 ```
-Run the Daemon:
+### Starting Daemon
+```
+./build/andb-daemon
+```
 
-```
-./build/andb
-```
-Use the CLI Tool:
 
 
 
 # Usage
-***Commands***
+Open new terminal </br>
+### Start the Cli
+```
+./build/andb-cli
+```
+### Connect to database / Create a database
 
 ```CONNECT <database_name>```
 
 Connects to the specified database. Creates the database if it does not exist.
 
+![Alt text](readme-assets/image.png)
+
 ```EXIT```
 
 Terminates the current session 
+
+### Create Table 
+
+```
+CREATE TABLE new (name STRING , age INT, salary INT)
+```
+![Alt text](readme-assets/image-1.png)
+
+### Insert a tuple
+
+```
+INSERT INTO new VALUES("key1" , 10 , 5000)
+```
+```
+INSERT INTO new VALUES("key2" , 20 , 2000)
+```
+```
+INSERT INTO new VALUES("key3" , 30 , 3000)
+
+```
+![Alt text](readme-assets/image-2.png)
+
+### View Table
+
+
+```
+SELECT * FROM new
+```
+![Alt text](readme-assets/image-3.png)
+
+
+
+### Update a tuple
+
+```
+UPDATE new SET salary = 1111, age = 11111 WHERE name = "key1"
+```
+![Alt text](readme-assets/image-4.png)
+
+### Delete a tuple
+
+```
+DELETE FROM new WHERE name = "key1"
+```
+![Alt text](readme-assets/image-5.png)
+
+### Transactions
+```
+BEGIN
+INSERT INTO new VALUES("key4" , 40 , 4000)
+COMMIT
+```
+![Alt text](readme-assets/image-6.png)
+
+```
+BEGIN
+INSERT INTO new VALUES("key5" , 50 , 5000)
+ROLLBACK
+```
+![Alt text](readme-assets/image-7.png)
+
+
+
+
 
 
 # Architecture

@@ -81,10 +81,10 @@ void test() {
         
         INSERT INTO new VALUES("key1" , 10 , 5000)
         
-        BEGIN INTO new VALUES("key2" , 20 , 2000)
+        INSERT INTO new VALUES("key2" , 20 , 2000)
         INSERT INTO new VALUES("key3" , 30 , 3000)
-        INSERT INTO newtable VALUES("key4" , 30 , 3000)
-        INSERT INTO newtable VALUES("key5" , 30 , 3000)
+        INSERT INTO new VALUES("key4" , 40 , 4000)
+        INSERT INTO new VALUES("key5" , 50 , 5000)
         SELECT * FROM new
  
     
@@ -95,7 +95,6 @@ void test() {
     // UPDATE newtable SET salary = 70000, age = 31 WHERE name = "key3";
     // SELECT age,name,salary FROM newtable
 
-    Interpreter interpreter(database, query);
 
     string query2 = R"(
         SELECT * FROM new 

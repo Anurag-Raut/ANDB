@@ -93,7 +93,7 @@ void daemonize() {
 }
 
 int main() {
-    // daemonize();
+    daemonize();
 
     if (std::filesystem::exists(SOCKET_PATH)) {
         std::filesystem::remove(SOCKET_PATH);
