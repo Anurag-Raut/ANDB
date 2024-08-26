@@ -118,6 +118,8 @@ ROLLBACK
 
 
 # Architecture
+![Alt text](readme-assets/image-8.png)
+
 ***SQL Parser*** : Handles the parsing and execution of SQL queries.</br>
 ***B+ Tree Indexing*** : Provides efficient indexing and quick access to data.</br>
 ***Daemon Service*** : Runs in the background to handle database operations.</br>
