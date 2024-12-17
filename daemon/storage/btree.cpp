@@ -156,7 +156,7 @@ void writePage(BTreeNode* node, Btree* btree) {
         offset += sizeof(node->children.back());
     }
     // For debugging (optional)
-    // S    eek to the end of the file to append the new page
+    // Seek to the end of the file to append the new page
     // index_file->seekp(0, ios::end);
 
     // Write the buffer to the file
